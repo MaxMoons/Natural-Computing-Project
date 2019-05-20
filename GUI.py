@@ -24,7 +24,7 @@ class GUI(Frame):
         # Width and height of the canvas
         self.canvas_width, self.canvas_height = 600, 500
         self.frame_width, self.frame_height = 600, 100
-		self.mode = 0
+        self.mode = 0
         
         # Amount of x and y pixels; y follows from height and pixel size as pixels are square
         self.x_pixels = 100
@@ -34,13 +34,15 @@ class GUI(Frame):
         # Size of one pixel
         self.particle_size = 5
         
-        # Coordinate grid for drawing stuff; first index is y (vertical), second is x (horizontal)
+        """
+		# Coordinate grid for drawing stuff; first index is y (vertical), second is x (horizontal)
         coords = np.zeros((y_pixels,x_pixels))
         coords = coords.tolist()
         for x in range(5):
             coords[x][0] = 1
         print(type(coords[0]))    
-        
+        """	
+		
         self.root = Tk()
         self.root.title("Super awesome animatie")
         
@@ -50,10 +52,13 @@ class GUI(Frame):
         self.frame.pack(fill='x')
         self.air_button = Button(self.frame, text='Delete')
         self.air_button.pack(side='left', padx = 10)
+        self.air_button.bind('<Button-1>', delete_button_click)
         self.water_button = Button(self.frame, text='Water')
         self.water_button.pack(side='left', padx = 10)
+        self.water_button.bind('<Button-1>', water_button_click)
         self.stone_button = Button(self.frame, text='Stone')
         self.stone_button.pack(side='left', padx = 10)
+        self.stone_button.bind('<Button-1>', stone_button_click)
         
         self.start_button = Button(self.frame, text='Start simulation')
         self.start_button.pack(side='left', padx = 60)
@@ -80,14 +85,15 @@ class GUI(Frame):
         self.w = Canvas(self.root, width=self.canvas_width, height=self.canvas_height)
         self.w.pack()
         
-        self.create_grid(self.particle_size,self.canvas_width,self.canvas_height)
+        self.create_grid()
 
     
     '''
     Deze functie heb ik van internet gehaald om een grid te tekenen
     Mijn idee was om deze functie te vervangen door draw_grid waarbij er alleen maar rectangles ipv lijnen getekend worden
     Hiermee krijg je wel een mooi idee over hoe er in het canvas getekend kan worden
-    '''
+	'''
+	
     def create_grid(self):
        # vertical lines at an interval of "line_distance" pixel
        for x in range(self.particle_size,self.canvas_width,self.particle_size):
@@ -119,6 +125,18 @@ class GUI(Frame):
 		# self.mode == 0
         else:
             return True
+			
+	def delete_button_click():
+        print("Delete modus")
+        self.mode = 0
+
+    def water_button_click():
+        print("Water modus")
+        self.mode = 1
+
+    def stone_button_click():
+        print("Stone modus")
+        self.mode = 2
     
     
     '''
@@ -132,15 +150,6 @@ class GUI(Frame):
         for y in range(len(coords)):
             for x in range(len(coords[0])):
                 draw_particle(self.canvas, coords[y][x], x*particle_size, y*particle_size, particle_size)
-
-    def delete_button_click():
-        self.mode = 0
-
-    def water_button_click():
-        self.mode = 1
-
-    def stone_button_click():
-        self.mode = 2
             
 if __name__ == "__main__":
     root = Tk()
