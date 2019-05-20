@@ -35,6 +35,15 @@ class GUI(Frame):
         # Size of one pixel
         self.particle_size = 5
         
+        """
+        # Coordinate grid for drawing stuff; first index is y (vertical), second is x (horizontal)
+        coords = np.zeros((y_pixels,x_pixels))
+        coords = coords.tolist()
+        for x in range(5):
+            coords[x][0] = 1
+        print(type(coords[0]))    
+        """
+
         self.root = Tk()
         self.root.title("Super awesome animatie")
         
@@ -45,12 +54,15 @@ class GUI(Frame):
         Label(self.frame, text="Mode:", bg='grey').pack(side='left')
         self.modelabel = Label(self.frame, text="Default", bg='grey').pack(side='left')
         self.air_button = Button(self.frame, text='Delete')
-        self.air_button.pack(side='left', padx=10)
+        self.air_button.pack(side='left', padx = 10)
+        self.air_button.bind('<Button-1>', self.delete_button_click)
         self.water_button = Button(self.frame, text='Water')
-        self.water_button.pack(side='left', padx=10)
+        self.water_button.pack(side='left', padx = 10)
+        self.water_button.bind('<Button-1>', self.water_button_click)
         self.stone_button = Button(self.frame, text='Stone')
-        self.stone_button.pack(side='left', padx=10)
-        
+        self.stone_button.pack(side='left', padx = 10)
+        self.stone_button.bind('<Button-1>', self.stone_button_click)
+
         self.start_button = Button(self.frame, text='Start simulation')
         self.start_button.pack(side='left', padx=60)
         self.stop_button = Button(self.frame, text='Stop simulation')
@@ -76,7 +88,7 @@ class GUI(Frame):
         self.w = Canvas(self.root, width=self.canvas_width, height=self.canvas_height)
         self.w.bind("<Button-1>", leftclick)
         self.w.pack()
-        
+
         self.create_grid()
     
     '''
@@ -84,6 +96,7 @@ class GUI(Frame):
     Mijn idee was om deze functie te vervangen door draw_grid waarbij er alleen maar rectangles ipv lijnen getekend worden
     Hiermee krijg je wel een mooi idee over hoe er in het canvas getekend kan worden
     '''
+
     def create_grid(self):
         # vertical lines at an interval of "line_distance" pixel
         for x in range(self.particle_size, self.canvas_width, self.particle_size):
@@ -117,6 +130,18 @@ class GUI(Frame):
         # self.mode == 0
         else:
             return True
+
+    def delete_button_click(self, event):
+        print("Delete modus")
+        self.mode = 0
+
+    def water_button_click(self, event):
+        print("Water modus")
+        self.mode = 1
+
+    def stone_button_click(self, event):
+        print("Stone modus")
+        self.mode = 2
     
     
     '''
@@ -131,21 +156,8 @@ class GUI(Frame):
             for x in range(self.canvas_width):
                 self.draw_particle(coords[y][x], x*self.particle_size, y*self.particle_size)
 
-    def delete_button_click(self):
-        self.mode = 0
 
-    def water_button_click(self):
-        self.mode = 1
-
-    def stone_button_click(self):
-        self.mode = 2
-
-    def change_label(self):
-        data = self.air_button
-        self.entryLabel.configure(text=data)
-
-
-def leftclick(self,eventorigin):
+def leftclick(self, eventorigin):
     global x0, y0
     x0 = eventorigin.x
     y0 = eventorigin.y
