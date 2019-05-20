@@ -19,12 +19,13 @@ class GUI(Frame):
     Inputvakken voor parameters van de formules
     '''
 
-    def __init__(self, root):
+    def __init__(self, root, **kw):
+        super().__init__(**kw)
         self.root = root
         # Width and height of the canvas
         self.canvas_width, self.canvas_height = 600, 500
         self.frame_width, self.frame_height = 600, 100
-		self.mode = 0
+        self.mode = 0
         
         # Amount of x and y pixels; y follows from height and pixel size as pixels are square
         self.x_pixels = 100
@@ -33,13 +34,6 @@ class GUI(Frame):
         
         # Size of one pixel
         self.particle_size = 5
-        
-        # Coordinate grid for drawing stuff; first index is y (vertical), second is x (horizontal)
-        coords = np.zeros((y_pixels,x_pixels))
-        coords = coords.tolist()
-        for x in range(5):
-            coords[x][0] = 1
-        print(type(coords[0]))    
         
         self.root = Tk()
         self.root.title("Super awesome animatie")
@@ -80,7 +74,7 @@ class GUI(Frame):
         self.w = Canvas(self.root, width=self.canvas_width, height=self.canvas_height)
         self.w.pack()
         
-        self.create_grid(self.particle_size,self.canvas_width,self.canvas_height)
+        self.create_grid()
 
     
     '''
@@ -89,22 +83,23 @@ class GUI(Frame):
     Hiermee krijg je wel een mooi idee over hoe er in het canvas getekend kan worden
     '''
     def create_grid(self):
-       # vertical lines at an interval of "line_distance" pixel
-       for x in range(self.particle_size,self.canvas_width,self.particle_size):
-          self.w.create_line(x, 0, x, self.canvas_height, fill="gray80", width=0.15)
-       # horizontal lines at an interval of "line_distance" pixel
-       for y in range(self.particle_size,self.canvas_height,self.particle_size):
-          self.w.create_line(0, y, self.canvas_width, y, fill="gray80", width=0.15)
+        # vertical lines at an interval of "line_distance" pixel
+        for x in range(self.particle_size,self.canvas_width,self.particle_size):
+            self.w.create_line(x, 0, x, self.canvas_height, fill="gray80", width=0.15)
+        # horizontal lines at an interval of "line_distance" pixel
+        for y in range(self.particle_size, self.canvas_height, self.particle_size):
+            self.w.create_line(0, y, self.canvas_width, y, fill="gray80", width=0.15)
 
     '''
-    Draw a particle in the given coordinate
+    This function is called to draw a particle in the given coordinate when redrawing the entire grid
     canvas is the space the particle should be drawn in
     n is the type of particle that should be drawn (i.e. 0=air, 1=water, 2=stone)
     x, y are x and y coordinates (x1,y1) of the pixel
     pixel_size is the fixed pixel size that is used to determine x2 and y2
     tkinter colors: http://www.science.smith.edu/dftwiki/index.php/Color_Charts_for_TKinter
     '''
-    def draw_particle(self, x, y, particle_size):
+    def draw_particle(self, particle_type, x1, y1):
+        # Gebruik self.particle size om uit x1,y1 de x2,y2 af te leiden
         # 2 = stone
         # A solid filled dark-gray rectangle (gray40?)
         if self.mode == 2:
@@ -116,7 +111,7 @@ class GUI(Frame):
             return True
 
         # A rectangle with light-gray outline (gray80?) and no fill (snow?)
-		# self.mode == 0
+        # self.mode == 0
         else:
             return True
     
@@ -129,19 +124,20 @@ class GUI(Frame):
     getallen opnieuw getekend worden (e.g. coordinatenstelsel van vorige iteratie meegeven en kijken of getal hetzelfde is?)
     '''
     def draw_grid(self, coords, particle_size):
-        for y in range(len(coords)):
-            for x in range(len(coords[0])):
-                draw_particle(self.canvas, coords[y][x], x*particle_size, y*particle_size, particle_size)
+        for y in range(self.canvas_height):
+            for x in range(self.canvas_width):
+                self.draw_particle(coords[y][x], x*self.particle_size, y*self.particle_size)
 
-    def delete_button_click():
+    def delete_button_click(self):
         self.mode = 0
 
-    def water_button_click():
+    def water_button_click(self):
         self.mode = 1
 
-    def stone_button_click():
+    def stone_button_click(self):
         self.mode = 2
-            
+
+
 if __name__ == "__main__":
     root = Tk()
     guiFrame = GUI(root)
