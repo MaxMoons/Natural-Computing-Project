@@ -86,7 +86,7 @@ class GUI(Frame):
         self.Parameter2.pack(padx=10,side='left')
         self.Parameter2.insert(0, "0")
         self.w = Canvas(self.root, width=self.canvas_width, height=self.canvas_height)
-        self.w.bind("<Button-1>", leftclick)
+        self.w.bind("<Button-1>", self.leftclick)
         self.w.pack()
 
         self.create_grid()
@@ -119,15 +119,18 @@ class GUI(Frame):
         # 2 = stone
         # A solid filled dark-gray rectangle (gray40?)
         if self.mode == 2:
+            self.w.create_rectangle(x1,y1,x1+self.particle_size,y1+self.particle_size,fill='gray40')
             return True
 
         # 1 = water
         # A solid filled blue rectangle (DodgerBlue2?)
         elif self.mode == 1:
+            self.w.create_rectangle(x1,y1,x1+self.particle_size,y1+self.particle_size,fill='DodgerBlue2')
             return True
 
         # A rectangle with light-gray outline (gray80?) and no fill (snow?)
-        # self.mode == 0
+        elif self.mode == 0:
+            self.w.create_rectangle(x1,y1,x1+self.particle_size,y1+self.particle_size,fill='snow',outline='gray80')
         else:
             return True
 
@@ -157,12 +160,23 @@ class GUI(Frame):
                 self.draw_particle(coords[y][x], x*self.particle_size, y*self.particle_size)
 
 
-def leftclick(self, eventorigin):
-    global x0, y0
-    x0 = eventorigin.x
-    y0 = eventorigin.y
-    print(x0, y0)
-    print("left")
+    def leftclick(self, eventorigin):
+        global x0, y0
+        x0 = eventorigin.x
+        y0 = eventorigin.y
+        print(x0, y0)
+		# Find the closest 'whole'-grid point
+        self.grid_x = 0
+        self.grid_y = 0
+        for i in range(self.particle_size):
+            if (x0 - i)% self.particle_size == 0:
+                self.grid_x = x0 - i
+        for j in range(self.particle_size):
+            if (y0 - j)% self.particle_size == 0:
+                self.grid_y = y0 - j
+        print("Grid_x = " + str(self.grid_x))
+        print("Grid_y = " + str(self.grid_y)) 
+        self.draw_particle(self.grid_x,self.grid_y)
 
 
 if __name__ == "__main__":
