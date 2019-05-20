@@ -22,14 +22,14 @@ class GUI(Frame):
     def __init__(self, root):
         self.root = root
         # Width and height of the canvas
-        canvas_width, canvas_height = 600, 500
+        self.canvas_width, self.canvas_height = 600, 500
         self.frame_width, self.frame_height = 600, 100
-		mode = 0
+		self.mode = 0
         
         # Amount of x and y pixels; y follows from height and pixel size as pixels are square
-        x_pixels = 100
-        pixel_size = canvas_width / x_pixels
-        y_pixels = int(canvas_height / pixel_size)
+        self.x_pixels = 100
+        self.pixel_size = self.canvas_width / self.x_pixels
+        self.y_pixels = int(self.canvas_height / self.pixel_size)
         
         # Size of one pixel
         self.particle_size = 5
@@ -77,10 +77,10 @@ class GUI(Frame):
         self.Parameter2 = Entry(self.frame2, width=10)
         self.Parameter2.pack(padx=10,side='left')
         self.Parameter2.insert(0, "0")
-        self.w = Canvas(self.root, width=canvas_width, height=canvas_height)
+        self.w = Canvas(self.root, width=self.canvas_width, height=self.canvas_height)
         self.w.pack()
         
-        self.create_grid(self.particle_size,canvas_width,canvas_height)
+        self.create_grid(self.particle_size,self.canvas_width,self.canvas_height)
 
     
     '''
