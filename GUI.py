@@ -1,6 +1,6 @@
 from tkinter import *
-import numpy as np
 
+import numpy as np
 
 class GUI(Frame):
     '''
@@ -25,6 +25,7 @@ class GUI(Frame):
         # Width and height of the canvas
         self.canvas_width, self.canvas_height = 600, 500
         self.frame_width, self.frame_height = 600, 100
+        self.board = Board.Board(5, 5)
         self.mode = 0
         
         # Amount of x and y pixels; y follows from height and pixel size as pixels are square
@@ -35,14 +36,7 @@ class GUI(Frame):
         # Size of one pixel
         self.particle_size = 5
         
-        """
-        # Coordinate grid for drawing stuff; first index is y (vertical), second is x (horizontal)
-        coords = np.zeros((y_pixels,x_pixels))
-        coords = coords.tolist()
-        for x in range(5):
-            coords[x][0] = 1
-        print(type(coords[0]))    
-        """
+
 
         self.root = Tk()
         self.root.title("Super awesome animatie")
@@ -175,7 +169,7 @@ class GUI(Frame):
             if (y0 - j)% self.particle_size == 0:
                 self.grid_y = y0 - j
         print("Grid_x = " + str(self.grid_x))
-        print("Grid_y = " + str(self.grid_y)) 
+        print("Grid_y = " + str(self.grid_y))
         self.draw_particle(self.grid_x,self.grid_y)
 
 
