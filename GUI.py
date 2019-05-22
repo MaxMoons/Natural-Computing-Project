@@ -1,6 +1,7 @@
 from tkinter import *
 import numpy as np
 import time
+import Board as B
 
 class GUI(Frame):
 	'''
@@ -94,9 +95,10 @@ class GUI(Frame):
 		self.w = Canvas(self.root, width=self.canvas_width, height=self.canvas_height)
 		self.w.bind("<Button-1>", self.leftclick)
 		self.w.pack()
-		#self.grid = [[0 for x in range(self.canvas_width)] for y in range(self.canvas_height)]
-		self.grid = [[0 for x in range(self.canvas_height)] for y in range(self.canvas_width)]
-		self.new_grid = self.grid
+		self.tuples = []
+		self.new_tuples = []
+		#self.board = B.Board(self.canvas_width, self.canvas_height)
+		#self.target_board = B.Board(self.canvas_width, self.canvas_height)
 		self.create_grid()
 
 	'''
@@ -104,13 +106,13 @@ class GUI(Frame):
 	Mijn idee was om deze functie te vervangen door draw_grid waarbij er alleen maar rectangles ipv lijnen getekend worden
 	Hiermee krijg je wel een mooi idee over hoe er in het canvas getekend kan worden
 	'''
-	
+	"""
 	# Set the particle in our own grid. n is the type of particle.
 	def set_particle_in_grid(self, x, y):
 		for i in range (self.particle_size):
 			for j in range (self.particle_size):
 				self.grid[x+i][y+j] = self.mode
-	
+	"""
 	def create_grid(self):
 		# vertical lines at an interval of "line_distance" pixel
 		for x in range(self.particle_size, self.canvas_width, self.particle_size):
@@ -133,50 +135,90 @@ class GUI(Frame):
 		# Gebruik self.particle size om uit x1,y1 de x2,y2 af te leiden
 		# 2 = stone
 		# A solid filled dark-gray rectangle (gray40?)
+		# Add the tuple to the tuples list.
 		if self.mode == 2:
 			self.w.create_rectangle(x1,y1,x1+self.particle_size,y1+self.particle_size,fill='gray40')
-			self.set_particle_in_grid(x1,y1)
+			self.tuples.append((x1,y1,self.mode))
 			return True
 		
 		# 1 = water
 		# A solid filled blue rectangle (DodgerBlue2?)
+		# Add the tuple to the tuples list.
 		elif self.mode == 1:
 			self.w.create_rectangle(x1,y1,x1+self.particle_size,y1+self.particle_size,fill='DodgerBlue2')
-			self.set_particle_in_grid(x1,y1)
+			self.tuples.append((x1,y1,self.mode))
 			return True
 		
 		# A rectangle with light-gray outline (gray80?) and no fill (snow?)
+		# If there is a water or stone rectangle, remove it.
 		elif self.mode == 0:
+			remove = False
+			tuple_to_remove = ((0,0,0))
 			self.w.create_rectangle(x1,y1,x1+self.particle_size,y1+self.particle_size,fill='snow',outline='gray80')
-			self.set_particle_in_grid(x1,y1)
+			for i in range(len(self.tuples)):
+				if(self.tuples[i][0] == x1 and self.tuples[i][1] == y1):
+					tuple_to_remove = self.tuples[i]
+					remove = True
+			if(remove):
+				self.tuples.remove(tuple_to_remove)
+				remove = False
 		else:
 			return True
-	
+		
+	'''
+	Draw all the tuple that it gets. Function is based on the draw_particle function but now without
+	adding or removing tuples from the tuples list, just drawing.
+	'''
+	def draw_tuple(self, tuple):
+		x1 = tuple[0]
+		y1 = tuple[1]
+		n = tuple[2]
+		# Gebruik self.particle size om uit x1,y1 de x2,y2 af te leiden
+		# 2 = stone
+		# A solid filled dark-gray rectangle (gray40?)
+		if n == 2:
+			self.w.create_rectangle(x1,y1,x1+self.particle_size,y1+self.particle_size,fill='gray40')
+			return True
+		
+		# 1 = water
+		# A solid filled blue rectangle (DodgerBlue2?)
+		elif n == 1:
+			self.w.create_rectangle(x1,y1,x1+self.particle_size,y1+self.particle_size,fill='DodgerBlue2')
+			return True
+		
+		# A rectangle with light-gray outline (gray80?) and no fill (snow?)
+		elif n == 0:
+			self.w.create_rectangle(x1,y1,x1+self.particle_size,y1+self.particle_size,fill='snow',outline='gray80')
+		else:
+			return True
+
+	'''
+	For all water rectangles in the list of tuples of the current board, add 1 to the height of the water
+	rectangle to let it drop 1 step. Save this in the list of new_tuples.
+	'''
+				
+	def drop_water(self):
+		remove = False
+		tuple_to_remove = ((0,0,0))
+		self.new_tuples = self.tuples
+		for i in range(len(self.tuples)):
+			if self.tuples[i][2] == 1:
+				# Let the water rectangle drop
+				self.new_tuples.append((self.tuples[i][0],self.tuples[i][1]+5,1))
+				# Delete the water rectangle at current position
+				self.new_tuples.remove(self.tuples[i])
+				
 	# calculate changes in grid for every step
 	def next_step(self):
-		for i in range (self.canvas_width):
-			for j in range (self.canvas_height):
-				# Drop water rectangle with one step
-				if self.grid[i][j] == 1:
-					#print("Water at: " + str(i) + " " + str(j))
-					self.new_grid = self.grid
-					current_mode = self.mode
-					if (j+self.particle_size < self.canvas_height):
-						# save the current mode
-						self.mode = 0							
-						self.draw_particle(i,j)
-						self.mode = 1
-						self.draw_particle(i,j+1)
-						# restore the current mode
-						self.mode = current_mode
-		print("looped")
-		return self.new_grid
-	
-	
+		self.drop_water()
+		for i in range (len(self.new_tuples)):
+			self.draw_tuple(self.new_tuples[i])
+		self.tuples = self.new_tuples
+		
 	def simulation(self):
 		for i in range (5):
 			self.next_step()
-			time.sleep(2)
+			time.sleep(0.5)
 	
 	def delete_button_click(self, event):
 		print("Delete modus")
@@ -192,13 +234,12 @@ class GUI(Frame):
 	
 	def start_button_click(self, event):
 		print("Start simulation")
+		print(self.tuples)
 		self.simulation()
-		self.simulate = True
 	
 	def stop_button_click(self, event):
 		print("Stop simulation")
 		self.number_of_iterations = 0
-		self.simulate = False
 		
 	'''
 	Draw the entire grid based on the numbers stored in coords

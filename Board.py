@@ -43,7 +43,7 @@ class Board:
     def copy_board(self, target):
         target.board = self.board
         target.board_width = self.board_width
-        target.board_height = self.board_height
+        target.board_height = self.board_height 
 
     '''
     Return the board as a list of tuples containing the coordinates that have value 1 or 2 (i.e. 0 values do not have to be drawn)
