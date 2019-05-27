@@ -1,6 +1,6 @@
 from tkinter import *
 import numpy as np
-import time
+from time import sleep
 import Board as B
 
 
@@ -10,7 +10,7 @@ class Simulation():
         self.canvas_width = canvas_width
         self.canvas_height = canvas_height
         self.rectangles = rectangles
-        self.nextconfig = []
+        self.next_config = []
         self.animation_speed = animation_speed
         self.iterations = iterations
         self.watercolor = 'DodgerBlue2'
@@ -19,11 +19,15 @@ class Simulation():
 
     def simulate(self):
         iteration = 0
-        while iteration < iterations:
+        while iteration < self.iterations:
+            print("Iteration " + str(iteration))
             iteration += 1
             self.get_next_config()
-			self.clear_canvas()
-			self.draw_rectangles()
+            self.clear_canvas()
+            self.draw_rectangles()
+            sleep(float(self.animation_speed))
+            self.canvas.update()
+        return self.rectangles
             # Bereken uit rectangles de posities van de nieuwe rectangles get_next_config
                 # Sla iedere nieuwe rectangle op in next_config
             # Verwijder de huidige getekende rectangles clear_canvas
@@ -35,11 +39,12 @@ class Simulation():
     Hierin wordt de configuratie van de volgende iteratie berekend
     '''
     def get_next_config(self):
-		for i in range(len(self.rectangles)):
-			if self.rectangles[i].iswater():
-				self.move_rect(self.rectangles[i],"down")
-			else:
-				self.next_config.append(rectangles[i])
+        for r in self.rectangles:
+            if self.iswater(r):
+                self.move_rect(r, "down")
+            else:
+                coords = self.canvas.coords(r)
+                self.next_config.append((coords[0], coords[1], self.stonecolor))
 
     '''
     Hier worden alle getekende rectangles verwijderd
@@ -54,10 +59,10 @@ class Simulation():
     Hier worden de nieuwe rectangles van de volgende configuratie getekend
     '''
     def draw_rectangles(self):
-        for c in self.nextconfig:
+        for c in self.next_config:
             r = self.canvas.create_rectangle(c[0], c[1], c[0]+self.pixel_size, c[1]+self.pixel_size, fill=c[2])
             self.rectangles.append(r)
-        self.nextconfig = []
+        self.next_config = []
         return True
 
     '''
@@ -66,24 +71,20 @@ class Simulation():
     - next_config wordt een lege list
     '''
     def update_lists(self):
-		self.rectangles = self.next_config
-		self.next_config = []
-
-
+        self.rectangles = self.next_config
+        self.next_config = []
 
     # Plaats van de huidige rectangle de rectangle van de volgende stap in next_config
     def move_rect(self, rectangle, direction):
-		if (direction == "down"):
-			self.next_config.append((x1,y1+self.pixel_size,self.watercolor))
-		elif (direction == "up"):
-			self.next_config.append((x1,y1-self.pixel_size,self.watercolor))
-		elif (direction == "right"):
-			self.next_config.append((x1+self.pixel_size,y1,self.watercolor))
-		elif (direction == "left"):
-			self.next_config.append((x1-self.pixel_size,y1,self.watercolor))
-
-
-
+        c = self.canvas.coords(rectangle)
+        if direction == "down":
+            self.next_config.append((c[0], c[1]+self.pixel_size, self.watercolor))
+        elif direction == "up":
+            self.nextconfig.append((c[0], c[1]-self.pixel_size, self.watercolor))
+        elif direction == "right":
+            self.next_config.append((c[0]+self.pixel_size, c[1], self.watercolor))
+        elif direction == "left":
+            self.next_config.append((c[0]-self.pixel_size, c[1], self.watercolor))
 
     '''
     Iterate over every rectangle
@@ -107,7 +108,6 @@ class Simulation():
                 self.new_tuples.append((self.tuples[i][0], self.tuples[i][1] + 5, 1))
                 # Delete the water rectangle at current position
                 self.new_tuples.remove(self.tuples[i])
-
 
     def iswater(self, rectangle):
         return self.canvas.itemcget(rectangle, "fill") == self.watercolor

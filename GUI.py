@@ -27,8 +27,8 @@ class GUI(Frame):
         self.frame_width, self.frame_height = 600, 100
         self.mode = 0
         self.simulate = False
-        self.number_of_iterations = 500000
-        self.animation_speed = 5
+        self.number_of_iterations = 10
+        self.animation_speed = 0.25
         self.watercolor = 'DodgerBlue2'
         self.stonecolor = 'gray40'
 
@@ -75,7 +75,7 @@ class GUI(Frame):
         Label(self.frame2, text="Animation speed:").pack(side=LEFT)
         self.speed_input = Entry(self.frame2, width=10)
         self.speed_input.pack(padx=10, side='left')
-        self.speed_input.insert(0, "5")
+        self.speed_input.insert(0, str(self.animation_speed))
 
         Label(self.frame2, text="Parameter1:").pack(side='left')
         self.Parameter1 = Entry(self.frame2, width=10)
@@ -219,11 +219,12 @@ class GUI(Frame):
     def start_button_click(self, event):
         print("Start simulation")
         self.animation_speed = self.speed_input.get()
+        print("Animation speed = " + str(self.animation_speed))
         simulation = s.Simulation(canvas=self.w, canvas_width=self.canvas_width, canvas_height=self.canvas_height,
                                   rectangles=self.rectangles, animation_speed=self.animation_speed,
-								  iterations=self.number_of_iterations, pixel_size=self.pixel_size)
-		simulation.simulate()
-		return True
+                                iterations=self.number_of_iterations, pixel_size=self.particle_size)
+        self.rectangles = simulation.simulate()
+        return True
 
 
     def stop_button_click(self, event):
