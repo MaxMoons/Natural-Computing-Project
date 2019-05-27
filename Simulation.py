@@ -4,9 +4,11 @@ import time
 import Board as B
 
 
-class Simulation(canvas, pixels, animation_speed, iterations. pixel_size):
+class Simulation(canvas, canvas_width, canvas_height, pixels, animation_speed, iterations, pixel_size):
     def __init__(self, canvas, rectangles, animation_speed, iterations):
         self.canvas = canvas
+        self.canvas_width = canvas_width
+        self.canvas_height = canvas_height
         self.rectangles = rectangles
         self.nextconfig = []
         self.animation_speed = animation_speed
@@ -14,6 +16,59 @@ class Simulation(canvas, pixels, animation_speed, iterations. pixel_size):
         self.watercolor = 'DodgerBlue2'
         self.stonecolor = 'gray40'
         self.pixel_size = pixel_size
+
+    def simulate(self):
+        iteration = 0
+        while iteration < iterations:
+            iteration += 1
+            # Bereken uit rectangles de posities van de nieuwe rectangles get_next_config
+                # Sla iedere nieuwe rectangle op in next_config
+            # Verwijder de huidige getekende rectangles clear_canvas
+            # Teken de rectangles in next_config (draw_rectangles)
+            # Sla next_config op als rectangles (update_lists)
+            # Leeg de list van next_config (update_lists)
+
+    '''
+    Hierin wordt de configuratie van de volgende iteratie berekend
+    '''
+    def get_next_config(self):
+        return True
+
+    '''
+    Hier worden alle getekende rectangles verwijderd
+    '''
+    def clear_canvas(self):
+        return True
+
+    '''
+    Hier worden de nieuwe rectangles van de volgende configuratie getekend
+    '''
+    def draw_rectangles(self):
+        return True
+
+    '''
+    Hier worden de lijsten geupdate
+    - rectangles wordt next_config
+    - next_config wordt een lege list
+    '''
+    def update_lists(self):
+        return True
+
+
+
+    # Plaats van de huidige rectangle de rectangle van de volgende stap in next_config
+    def move_rect(self, rectangle, direction):
+
+
+    # Verwijder de oude getekende rectangles
+    def remove_rects(self):
+
+
+    # Teken de nieuwe configuratie
+    def draw_rectangles(self):
+
+
+
 
     '''
     Iterate over every rectangle
@@ -38,17 +93,6 @@ class Simulation(canvas, pixels, animation_speed, iterations. pixel_size):
                 # Delete the water rectangle at current position
                 self.new_tuples.remove(self.tuples[i])
 
-    # calculate changes in grid for every step
-    def next_step(self):
-        self.drop_water()
-        for i in range(len(self.new_tuples)):
-            self.draw_tuple(self.new_tuples[i])
-        self.tuples = self.new_tuples
-
-    def simulation(self):
-        for i in range(5):
-            self.next_step()
-            time.sleep(0.5)
 
     def iswater(self, rectangle):
         return self.canvas.itemcget(rectangle, "fill") == self.watercolor
