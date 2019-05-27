@@ -38,15 +38,6 @@ class GUI(Frame):
 		# Size of one pixel
 		self.particle_size = 5
 		
-		"""
-		# Coordinate grid for drawing stuff; first index is y (vertical), second is x (horizontal)
-		coords = np.zeros((y_pixels,x_pixels))
-		coords = coords.tolist()
-		for x in range(5):
-			coords[x][0] = 1
-		print(type(coords[0]))    
-        """
-		
 		self.root = Tk()
 		self.root.title("Super awesome animatie")
 		
@@ -55,7 +46,9 @@ class GUI(Frame):
 		self.frame = Frame(self.root, bg='grey')
 		self.frame.pack(fill='x')
 		Label(self.frame, text="Mode:", bg='grey').pack(side='left')
-		self.modelabel = Label(self.frame, text="Default", bg='grey').pack(side='left')
+		self.modelabeltext = 'Delete'
+		self.modelabel = Label(self.frame, bg='grey', text=self.modelabeltext)
+		self.modelabel.pack(side='left')
 		self.air_button = Button(self.frame, text='Delete')
 		self.air_button.pack(side='left', padx = 10)
 		self.air_button.bind('<Button-1>', self.delete_button_click)
@@ -79,12 +72,12 @@ class GUI(Frame):
 		
 		Label(self.frame2, text="Animation speed:").pack(side=LEFT)
 		self.speed_input = Entry(self.frame2, width=10)
-		self.speed_input.pack(padx=10,side='left')
+		self.speed_input.pack(padx=10, side='left')
 		self.speed_input.insert(0, "5")
 		
 		Label(self.frame2, text="Parameter1:").pack(side='left')
 		self.Parameter1 = Entry(self.frame2, width=10)
-		self.Parameter1.pack(padx=10,side='left')
+		self.Parameter1.pack(padx=10, side='left')
 		self.Parameter1.insert(0, "0")
 		
 		Label(self.frame2, text="Parameter2:").pack(side='left')
@@ -95,7 +88,8 @@ class GUI(Frame):
 		self.w = Canvas(self.root, width=self.canvas_width, height=self.canvas_height)
 		self.w.bind("<Button-1>", self.leftclick)
 		self.w.pack()
-		self.tuples = []
+		self.initial_board = []
+		self.rectangles = []
 		self.new_tuples = []
 		#self.board = B.Board(self.canvas_width, self.canvas_height)
 		#self.target_board = B.Board(self.canvas_width, self.canvas_height)
@@ -137,32 +131,30 @@ class GUI(Frame):
 		# A solid filled dark-gray rectangle (gray40?)
 		# Add the tuple to the tuples list.
 		if self.mode == 2:
-			self.w.create_rectangle(x1,y1,x1+self.particle_size,y1+self.particle_size,fill='gray40')
-			self.tuples.append((x1,y1,self.mode))
+			r = self.w.create_rectangle(x1, y1, x1+self.particle_size, y1+self.particle_size, fill='gray40')
+			self.rectangles.append(r)
+			self.initial_board.append((x1, y1, self.mode))
 			return True
 		
 		# 1 = water
 		# A solid filled blue rectangle (DodgerBlue2?)
 		# Add the tuple to the tuples list.
 		elif self.mode == 1:
-			self.w.create_rectangle(x1,y1,x1+self.particle_size,y1+self.particle_size,fill='DodgerBlue2')
-			self.tuples.append((x1,y1,self.mode))
+			r = self.w.create_rectangle(x1, y1, x1+self.particle_size, y1+self.particle_size, fill='DodgerBlue2')
+			self.rectangles.append(r)
+			self.initial_board.append((x1, y1, self.mode))
 			return True
 		
 		# A rectangle with light-gray outline (gray80?) and no fill (snow?)
 		# If there is a water or stone rectangle, remove it.
 		elif self.mode == 0:
-			remove = False
-			tuple_to_remove = ((0,0,0))
-			self.w.create_rectangle(x1,y1,x1+self.particle_size,y1+self.particle_size,fill='snow',outline='gray80')
-			for i in range(len(self.tuples)):
-				if(self.tuples[i][0] == x1 and self.tuples[i][1] == y1):
-					tuple_to_remove = self.tuples[i]
-					remove = True
-			if(remove):
-				self.tuples.remove(tuple_to_remove)
-				remove = False
-		else:
+			for r in self.rectangles:
+				c = self.w.coords(r)
+				if c[0] == x1 and c[1] == y1:
+					print("Rectangle found!")
+					self.w.delete(r)
+					self.rectangles.remove(r)
+					return True
 			return True
 		
 	'''
@@ -177,18 +169,22 @@ class GUI(Frame):
 		# 2 = stone
 		# A solid filled dark-gray rectangle (gray40?)
 		if n == 2:
-			self.w.create_rectangle(x1,y1,x1+self.particle_size,y1+self.particle_size,fill='gray40')
+			self.w.create_rectangle(x1, y1, x1+self.particle_size, y1+self.particle_size, fill='gray40')
 			return True
 		
 		# 1 = water
 		# A solid filled blue rectangle (DodgerBlue2?)
 		elif n == 1:
-			self.w.create_rectangle(x1,y1,x1+self.particle_size,y1+self.particle_size,fill='DodgerBlue2')
+			r = self.w.create_rectangle(x1, y1, x1+self.particle_size, y1+self.particle_size, fill='DodgerBlue2')
+
 			return True
 		
 		# A rectangle with light-gray outline (gray80?) and no fill (snow?)
+		#
 		elif n == 0:
-			self.w.create_rectangle(x1,y1,x1+self.particle_size,y1+self.particle_size,fill='snow',outline='gray80')
+			for r in self.w.winfo_children():
+				coordinates = r.coords()
+				self.w.create_rectangle(x1, y1, x1+self.particle_size, y1+self.particle_size, fill='snow', outline='gray80')
 		else:
 			return True
 
@@ -222,14 +218,18 @@ class GUI(Frame):
 	
 	def delete_button_click(self, event):
 		print("Delete modus")
+		self.modelabel.configure(text='Delete')
 		self.mode = 0
 	
 	def water_button_click(self, event):
 		print("Water modus")
+		self.modelabeltext = 'Water'
+		self.modelabel.configure(text='Water')
 		self.mode = 1
 		
 	def stone_button_click(self, event):
 		print("Stone modus")
+		self.modelabel.configure(text='Stone')
 		self.mode = 2
 	
 	def start_button_click(self, event):
@@ -257,19 +257,19 @@ class GUI(Frame):
 		global x0, y0
 		x0 = eventorigin.x
 		y0 = eventorigin.y
-		print(x0, y0)
+		# print(x0, y0)
 		# Find the closest 'whole'-grid point
-		self.grid_x = 0
-		self.grid_y = 0
+		grid_x = 0
+		grid_y = 0
 		for i in range(self.particle_size):
-			if (x0 - i)% self.particle_size == 0:
-				self.grid_x = x0 - i
+			if (x0 - i) % self.particle_size == 0:
+				grid_x = x0 - i
 		for j in range(self.particle_size):
-			if (y0 - j)% self.particle_size == 0:
-				self.grid_y = y0 - j
-		print("Grid_x = " + str(self.grid_x))
-		print("Grid_y = " + str(self.grid_y)) 
-		self.draw_particle(self.grid_x,self.grid_y)
+			if (y0 - j) % self.particle_size == 0:
+				grid_y = y0 - j
+		# print("Grid_x = " + str(grid_x))
+		# print("Grid_y = " + str(grid_y))
+		self.draw_particle(grid_x, grid_y)
 
 
 if __name__ == "__main__":
