@@ -21,6 +21,9 @@ class Simulation(canvas, canvas_width, canvas_height, pixels, animation_speed, i
         iteration = 0
         while iteration < iterations:
             iteration += 1
+			self.get_next_config()
+			self.clear_canvas()
+			self.draw_rectangles()
             # Bereken uit rectangles de posities van de nieuwe rectangles get_next_config
                 # Sla iedere nieuwe rectangle op in next_config
             # Verwijder de huidige getekende rectangles clear_canvas
@@ -32,6 +35,11 @@ class Simulation(canvas, canvas_width, canvas_height, pixels, animation_speed, i
     Hierin wordt de configuratie van de volgende iteratie berekend
     '''
     def get_next_config(self):
+		for i in range(len(self.rectangles)):
+			if self.rectangles[i].iswater():
+				self.move_rect(self.rectangles[i],"down")
+			else:
+				self.next_config.append(rectangles[i])
         return True
 
     '''
@@ -52,13 +60,22 @@ class Simulation(canvas, canvas_width, canvas_height, pixels, animation_speed, i
     - next_config wordt een lege list
     '''
     def update_lists(self):
+		self.rectangles = self.next_config
+		self.next_config = []
         return True
 
 
 
     # Plaats van de huidige rectangle de rectangle van de volgende stap in next_config
     def move_rect(self, rectangle, direction):
-
+		if (direction == "down"):
+			self.next_config.append((x1,y1+self.pixel_size,self.watercolor))
+		elif (direction == "up"):
+			self.next_config.append((x1,y1-self.pixel_size,self.watercolor))
+		elif (direction == "right"):
+			self.next_config.append((x1+self.pixel_size,y1,self.watercolor))
+		elif (direction == "left"):
+			self.next_config.append((x1-self.pixel_size,y1,self.watercolor))
 
     # Verwijder de oude getekende rectangles
     def remove_rects(self):
