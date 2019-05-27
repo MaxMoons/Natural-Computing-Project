@@ -196,30 +196,6 @@ class GUI(Frame):
 	For all water rectangles in the list of tuples of the current board, add 1 to the height of the water
 	rectangle to let it drop 1 step. Save this in the list of new_tuples.
 	'''
-				
-	def drop_water(self):
-		remove = False
-		tuple_to_remove = ((0,0,0))
-		self.new_tuples = self.tuples
-		for i in range(len(self.tuples)):
-			if self.tuples[i][2] == 1:
-				# Let the water rectangle drop
-				self.new_tuples.append((self.tuples[i][0],self.tuples[i][1]+5,1))
-				# Delete the water rectangle at current position
-				self.new_tuples.remove(self.tuples[i])
-				
-	# calculate changes in grid for every step
-	def next_step(self):
-		self.drop_water()
-		for i in range(len(self.new_tuples)):
-			self.draw_tuple(self.new_tuples[i])
-		self.tuples = self.new_tuples
-		
-	def simulation(self):
-		for i in range(5):
-			self.next_step()
-			time.sleep(0.5)
-	
 	def delete_button_click(self, event):
 		print("Delete modus")
 		self.modelabel.configure(text='Delete')
