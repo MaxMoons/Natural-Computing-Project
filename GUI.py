@@ -29,6 +29,9 @@ class GUI(Frame):
 		self.mode = 0
 		self.simulate = False
 		self.number_of_iterations = 500000
+		self.animation_speed = 5
+		self.watercolor = 'DodgerBlue2'
+		self.stonecolor = 'gray40'
 		
 		# Amount of x and y pixels; y follows from height and pixel size as pixels are square
 		self.x_pixels = 100
@@ -91,6 +94,7 @@ class GUI(Frame):
 		self.initial_board = []
 		self.rectangles = []
 		self.new_tuples = []
+		self.board = None
 		#self.board = B.Board(self.canvas_width, self.canvas_height)
 		#self.target_board = B.Board(self.canvas_width, self.canvas_height)
 		self.create_grid()
@@ -131,7 +135,7 @@ class GUI(Frame):
 		# A solid filled dark-gray rectangle (gray40?)
 		# Add the tuple to the tuples list.
 		if self.mode == 2:
-			r = self.w.create_rectangle(x1, y1, x1+self.particle_size, y1+self.particle_size, fill='gray40')
+			r = self.w.create_rectangle(x1, y1, x1+self.particle_size, y1+self.particle_size, fill=self.stonecolor)
 			self.rectangles.append(r)
 			self.initial_board.append((x1, y1, self.mode))
 			return True
@@ -140,7 +144,7 @@ class GUI(Frame):
 		# A solid filled blue rectangle (DodgerBlue2?)
 		# Add the tuple to the tuples list.
 		elif self.mode == 1:
-			r = self.w.create_rectangle(x1, y1, x1+self.particle_size, y1+self.particle_size, fill='DodgerBlue2')
+			r = self.w.create_rectangle(x1, y1, x1+self.particle_size, y1+self.particle_size, fill=self.watercolor)
 			self.rectangles.append(r)
 			self.initial_board.append((x1, y1, self.mode))
 			return True
@@ -207,12 +211,12 @@ class GUI(Frame):
 	# calculate changes in grid for every step
 	def next_step(self):
 		self.drop_water()
-		for i in range (len(self.new_tuples)):
+		for i in range(len(self.new_tuples)):
 			self.draw_tuple(self.new_tuples[i])
 		self.tuples = self.new_tuples
 		
 	def simulation(self):
-		for i in range (5):
+		for i in range(5):
 			self.next_step()
 			time.sleep(0.5)
 	
@@ -234,7 +238,8 @@ class GUI(Frame):
 	
 	def start_button_click(self, event):
 		print("Start simulation")
-		print(self.tuples)
+		self.animation_speed = self.speed_input.get()
+		print(self.animation_speed)
 		self.simulation()
 	
 	def stop_button_click(self, event):
@@ -270,6 +275,7 @@ class GUI(Frame):
 		# print("Grid_x = " + str(grid_x))
 		# print("Grid_y = " + str(grid_y))
 		self.draw_particle(grid_x, grid_y)
+
 
 
 if __name__ == "__main__":

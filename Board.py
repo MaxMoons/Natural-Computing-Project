@@ -18,15 +18,20 @@ Board can be used to draw the rectangles on the canvas
 
 
 class Board:
-    def __init__(self, canvas_width, canvas_height):
+    def __init__(self, rectangles, canvas, canvas_width, canvas_height, pixel_size):
         # Coordinate grid for drawing stuff; first index is y (vertical), second is x (horizontal)
         self.board = np.zeros((canvas_height, canvas_width))
+        self.canvas = canvas
         self.board = self.board.tolist()
         self.board_width = canvas_width
         self.board_height = canvas_height
+        self.pixel_size = pixel_size
+        self.watercolor = 'DodgerBlue2'
+        self.stonecolor = 'gray40'
 
-    def set_value(self, x, y, val):
-        self.board[y][x] = val
+    def set_value(self, rectangle, val):
+        coordinates = self.canvas.coords(rectangle)
+        self.board[int(coordinates[1]/self.pixel_size)][int(coordinates[0]/self.pixel_size)] = val
 
     '''
     Tuples is a list of tuples (x, y, val)
