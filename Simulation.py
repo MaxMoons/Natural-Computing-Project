@@ -4,8 +4,8 @@ import time
 import Board as B
 
 
-class Simulation(canvas, canvas_width, canvas_height, pixels, animation_speed, iterations, pixel_size):
-    def __init__(self, canvas, rectangles, animation_speed, iterations):
+class Simulation():
+    def __init__(self, canvas, canvas_width, canvas_height, rectangles, animation_speed, iterations, pixel_size):
         self.canvas = canvas
         self.canvas_width = canvas_width
         self.canvas_height = canvas_height
@@ -38,12 +38,19 @@ class Simulation(canvas, canvas_width, canvas_height, pixels, animation_speed, i
     Hier worden alle getekende rectangles verwijderd
     '''
     def clear_canvas(self):
+        for r in self.rectangles:
+            self.canvas.delete(r)
+        self.rectangles = []
         return True
 
     '''
     Hier worden de nieuwe rectangles van de volgende configuratie getekend
     '''
     def draw_rectangles(self):
+        for c in self.nextconfig:
+            r = self.canvas.create_rectangle(c[0], c[1], c[0]+self.pixel_size, c[1]+self.pixel_size, fill=c[2])
+            self.rectangles.append(r)
+        self.nextconfig = []
         return True
 
     '''
@@ -58,14 +65,7 @@ class Simulation(canvas, canvas_width, canvas_height, pixels, animation_speed, i
 
     # Plaats van de huidige rectangle de rectangle van de volgende stap in next_config
     def move_rect(self, rectangle, direction):
-
-
-    # Verwijder de oude getekende rectangles
-    def remove_rects(self):
-
-
-    # Teken de nieuwe configuratie
-    def draw_rectangles(self):
+        return True
 
 
 
