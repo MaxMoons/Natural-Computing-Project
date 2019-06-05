@@ -86,9 +86,9 @@ class GUI(Frame):
         self.speed_input.insert(0, str(self.animation_speed))
 
         Label(self.frame2, text="Gravitation:").pack(side='left')
-        self.Parameter1 = Entry(self.frame2, width=10)
-        self.Parameter1.pack(padx=10, side='left')
-        self.Parameter1.insert(0, "0")
+        self.gravitation = Entry(self.frame2, width=10)
+        self.gravitation.pack(padx=10, side='left')
+        self.gravitation.insert(0, "0")
 
         Label(self.frame2, text="Formula:", bg='lightgrey').pack(side='left')
         self.formulalabeltext = "Convection-Diffusion"
