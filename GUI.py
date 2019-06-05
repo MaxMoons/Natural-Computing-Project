@@ -54,7 +54,7 @@ class GUI(Frame):
         self.frame.pack(fill='x')
         Label(self.frame, text="Draw mode:", bg='grey').pack(side='left')
         self.modelabeltext = 'Delete'
-        self.modelabel = Label(self.frame, bg='grey', text=self.modelabeltext)
+        self.modelabel = Label(self.frame, bg='grey', text=self.modelabeltext, width=10)
         self.modelabel.pack(side='left')
         self.air_button = Button(self.frame, text='Delete')
         self.air_button.pack(side='left', padx=10)
@@ -149,7 +149,7 @@ class GUI(Frame):
         # A solid filled dark-gray rectangle (gray40?)
         # Add the tuple to the tuples list.
         if self.mode == 2:
-            r = self.w.create_rectangle(x1, y1, x1 + self.particle_size, y1 + self.particle_size, angle=45, fill=self.stonecolor)
+            r = self.w.create_rectangle(x1, y1, x1 + self.particle_size, y1 + self.particle_size, fill=self.stonecolor)
             self.rectangles.append(r)
             self.initial_board.append((x1, y1, self.mode))
             return True
