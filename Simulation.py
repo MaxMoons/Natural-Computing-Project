@@ -27,6 +27,7 @@ class Simulation():
             self.draw_rectangles()
             sleep(float(self.animation_speed))
             self.canvas.update()
+            self.clear_outliers()
         return self.rectangles
             # Bereken uit rectangles de posities van de nieuwe rectangles get_next_config
                 # Sla iedere nieuwe rectangle op in next_config
@@ -86,6 +87,14 @@ class Simulation():
         elif direction == "left":
             self.next_config.append((c[0]-self.pixel_size, c[1], self.watercolor))
 
+	# Verwijder alle rectangles die niet in de grid zijn van de rectangles list.
+    def clear_outliers(self):
+        for r in self.rectangles:
+            c = self.canvas.coords(r)
+            if(c[0]<0 or c[1]<0 or c[0]>self.canvas_width or c[1]>self.canvas_height):
+                self.rectangles.remove(r)
+                print("removed rectangle at: " + str(c[0]) + " " + str(c[1]))
+	
     '''
     Iterate over every rectangle
     Determine per rectangle what its next position should be based on formulas, its element and its neighbours

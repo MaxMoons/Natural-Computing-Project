@@ -31,6 +31,10 @@ class GUI(Frame):
         self.animation_speed = 0.25
         self.watercolor = 'DodgerBlue2'
         self.stonecolor = 'gray40'
+        self.line_startx = 0
+        self.line_starty = 0
+        self.line_endx = 0
+        self.line_endy = 0
 
         # Amount of x and y pixels; y follows from height and pixel size as pixels are square
         self.x_pixels = 100
@@ -60,9 +64,12 @@ class GUI(Frame):
         self.stone_button = Button(self.frame, text='Stone')
         self.stone_button.pack(side='left', padx=10)
         self.stone_button.bind('<Button-1>', self.stone_button_click)
+        self.line_button = Button(self.frame, text='Line')
+        self.line_button.pack(side='left', padx=10)
+        self.line_button.bind('<Button-1>', self.line_button_click)
 
         self.start_button = Button(self.frame, text='Start simulation')
-        self.start_button.pack(side='left', padx=60)
+        self.start_button.pack(side='left', padx=50)
         self.start_button.bind('<Button-1>', self.start_button_click)
 
         self.stop_button = Button(self.frame, text='Stop simulation')
@@ -167,6 +174,14 @@ class GUI(Frame):
                     return True
             return True
 
+    def drawline(self):
+        self.w.create_line( self.line_startx, self.line_starty, self.line_endx, self.line_endy)
+        '''
+        for i in range (self.canvas_width):
+            for j in range (self.canvas_height):
+                if self.w.itemcget(self.w[i][j], "fill") == 'gray80':
+                    print("Line at: " + str(i) + "  " + str(j))
+	'''
     '''
 	Draw all the tuple that it gets. Function is based on the draw_particle function but now without
 	adding or removing tuples from the tuples list, just drawing.
@@ -216,6 +231,10 @@ class GUI(Frame):
         self.modelabel.configure(text='Water')
         self.mode = 1
 
+    def line_button_click(self, event):
+        print("Press for first point of line")
+        self.mode = 3
+		
     def stone_button_click(self, event):
         print("Stone modus")
         self.modelabel.configure(text='Stone')
@@ -263,7 +282,7 @@ class GUI(Frame):
         global x0, y0
         x0 = eventorigin.x
         y0 = eventorigin.y
-        # print(x0, y0)
+        linex1 = 0
         # Find the closest 'whole'-grid point
         grid_x = 0
         grid_y = 0
@@ -273,9 +292,18 @@ class GUI(Frame):
         for j in range(self.particle_size):
             if (y0 - j) % self.particle_size == 0:
                 grid_y = y0 - j
-        # print("Grid_x = " + str(grid_x))
-        # print("Grid_y = " + str(grid_y))
-        self.draw_particle(grid_x, grid_y)
+        # If draw line modus is on:
+        if self.mode == 3:
+            self.line_startx = x0
+            self.line_starty = y0
+            self.mode = 4
+        elif self.mode == 4:
+            self.line_endx = x0
+            self.line_endy = y0
+            self.mode = 3
+            self.drawline()
+        else:
+            self.draw_particle(grid_x, grid_y)
 
 
 if __name__ == "__main__":
