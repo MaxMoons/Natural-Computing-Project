@@ -35,6 +35,7 @@ class GUI(Frame):
         self.line_starty = 0
         self.line_endx = 0
         self.line_endy = 0
+        self.gradient = 0
 
         # Amount of x and y pixels; y follows from height and pixel size as pixels are square
         self.x_pixels = 100
@@ -169,14 +170,6 @@ class GUI(Frame):
                     return True
             return True
 
-    def drawline(self):
-        self.w.create_line( self.line_startx, self.line_starty, self.line_endx, self.line_endy)
-        '''
-        for i in range (self.canvas_width):
-            for j in range (self.canvas_height):
-                if self.w.itemcget(self.w[i][j], "fill") == 'gray80':
-                    print("Line at: " + str(i) + "  " + str(j))
-	'''
     '''
 	Draw all the tuple that it gets. Function is based on the draw_particle function but now without
 	adding or removing tuples from the tuples list, just drawing.
@@ -257,7 +250,30 @@ class GUI(Frame):
 	Het hele grid steeds opnieuw tekenen kan wat omslachtig zijn; misschien iets bedenken waarbij alleen de veranderde
 	getallen opnieuw getekend worden (e.g. coordinatenstelsel van vorige iteratie meegeven en kijken of getal hetzelfde is?)
 	'''
-
+    def drawline(self):
+        #self.w.create_line( self.line_startx, self.line_starty, self.line_endx, self.line_endy)
+        self.mode = 2
+        xdifference = self.line_endx - self.line_startx
+        ydifference = self.line_endy - self.line_starty
+        self.gradient = ydifference/xdifference
+        for step in range(int(abs(xdifference))):
+            self.draw_particle(self.line_startx+step,self.line_starty+self.gradient*step)
+        self.mode = 3
+	
+    """
+    Deze functie verandert het beginpunt van de lijn als het nodig is. Er wordt namelijk altijd van links naar rechts getekend in drawline().
+    """
+    def minimizestart(self):
+        temporaryx = 0
+        temporaryy = 0
+        if(self.line_startx > self.line_endx):
+            temporaryx = self.line_startx
+            self.line_startx = self.line_endx
+            self.line_endx = temporaryx
+            temporaryy = self.line_starty
+            self.line_starty = self.line_endy
+            self.line_endy = temporaryy
+	
     def draw_grid(self, coords):
         for y in range(self.canvas_height):
             for x in range(self.canvas_width):
@@ -282,10 +298,13 @@ class GUI(Frame):
             self.line_startx = x0
             self.line_starty = y0
             self.mode = 4
+            print("start x,  y: " + str(self.line_startx) + ", " + str(self.line_starty))
         elif self.mode == 4:
             self.line_endx = x0
             self.line_endy = y0
             self.mode = 3
+            self.minimizestart()
+            print("start x,  y: " + str(self.line_startx) + ", " + str(self.line_starty))
             self.drawline()
         else:
             self.draw_particle(grid_x, grid_y)
