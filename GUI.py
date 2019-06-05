@@ -52,7 +52,7 @@ class GUI(Frame):
         self.frame_width, self.frame_height = 600, 100
         self.frame = Frame(self.root, bg='grey')
         self.frame.pack(fill='x')
-        Label(self.frame, text="Mode:", bg='grey').pack(side='left')
+        Label(self.frame, text="Draw mode:", bg='grey').pack(side='left')
         self.modelabeltext = 'Delete'
         self.modelabel = Label(self.frame, bg='grey', text=self.modelabeltext)
         self.modelabel.pack(side='left')
@@ -85,16 +85,22 @@ class GUI(Frame):
         self.speed_input.pack(padx=10, side='left')
         self.speed_input.insert(0, str(self.animation_speed))
 
-        Label(self.frame2, text="Parameter1:").pack(side='left')
+        Label(self.frame2, text="Gravitation:").pack(side='left')
         self.Parameter1 = Entry(self.frame2, width=10)
         self.Parameter1.pack(padx=10, side='left')
         self.Parameter1.insert(0, "0")
 
-        Label(self.frame2, text="Parameter2:").pack(side='left')
+        Label(self.frame2, text="Formula:", bg='lightgrey').pack(side='left')
+        self.formulalabeltext = "Convection-Diffusion"
+        self.formulalabel = Label(self.frame2, bg='lightgrey', text=self.formulalabeltext, width=17)
+        self.formulalabel.pack(side='left')
+        self.formula_button = Button(self.frame2, text='Formula')
+        self.formula_button.pack(side='left', padx=10)
+        self.formula_button.bind('<Button-1>', self.formula_button_click)
 
-        self.Parameter2 = Entry(self.frame2, width=10)
-        self.Parameter2.pack(padx=10, side='left')
-        self.Parameter2.insert(0, "0")
+        #self.Parameter2 = Entry(self.frame2, width=10)
+        #self.Parameter2.pack(padx=10, side='left')
+        #self.Parameter2.insert(0, "0")
         self.w = Canvas(self.root, width=self.canvas_width, height=self.canvas_height)
         self.w.bind("<Button-1>", self.leftclick)
         self.w.pack()
@@ -137,14 +143,13 @@ class GUI(Frame):
 	pixel_size is the fixed pixel size that is used to determine x2 and y2
 	tkinter colors: http://www.science.smith.edu/dftwiki/index.php/Color_Charts_for_TKinter
 	'''
-
     def draw_particle(self, x1, y1):
         # Gebruik self.particle size om uit x1,y1 de x2,y2 af te leiden
         # 2 = stone
         # A solid filled dark-gray rectangle (gray40?)
         # Add the tuple to the tuples list.
         if self.mode == 2:
-            r = self.w.create_rectangle(x1, y1, x1 + self.particle_size, y1 + self.particle_size, fill=self.stonecolor)
+            r = self.w.create_rectangle(x1, y1, x1 + self.particle_size, y1 + self.particle_size, angle=45, fill=self.stonecolor)
             self.rectangles.append(r)
             self.initial_board.append((x1, y1, self.mode))
             return True
@@ -242,6 +247,16 @@ class GUI(Frame):
     def stop_button_click(self, event):
         print("Stop simulation")
         self.number_of_iterations = 0
+
+
+    def formula_button_click(self, event):
+        print("Hoi")
+        if self.formulalabeltext == "Convection-Diffusion":
+            self.formulalabeltext = "Navier–Stokes"
+        else:
+            self.formulalabeltext = "Convection-Diffusion"
+        self.formulalabel.configure(text=self.formulalabeltext)
+        return True
 
     '''
 	Draw the entire grid based on the numbers stored in coords
