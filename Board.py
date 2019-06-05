@@ -20,39 +20,76 @@ Board can be used to draw the rectangles on the canvas
 class Board:
     def __init__(self, rectangles, canvas, canvas_width, canvas_height, pixel_size):
         # Coordinate grid for drawing stuff; first index is y (vertical), second is x (horizontal)
-        self.board = np.zeros((canvas_height, canvas_width))
         self.canvas = canvas
-        self.board = self.board.tolist()
         self.board_width = canvas_width
         self.board_height = canvas_height
         self.pixel_size = pixel_size
         self.watercolor = 'DodgerBlue2'
         self.stonecolor = 'gray40'
+        self.board = self.make_empty_board()
 
-    def set_value(self, rectangle, val):
+    # Make a list of lists containing lists set to 0
+    # Each list on every position contains a value, x_velocity and y_velocity
+    def make_empty_board(self):
+        board = []
+        for y in range(self.board_height):
+            row = []
+            for x in range(self.board_width):
+                row.append([0, 0, 0])
+            board.append(row)
+        return board
+
+    # 0 = nothing
+    # 0-1 = water (i.e. 1 = 100% concentration)
+    # 2 = stone
+    def set_value(self, x, y, val):
         coordinates = self.canvas.coords(rectangle)
-        self.board[int(coordinates[1]/self.pixel_size)][int(coordinates[0]/self.pixel_size)] = val
+        self.board[int(coordinates[1] / self.pixel_size)][int(coordinates[0] / self.pixel_size)] = val
+
+    # Set particle velocity on position x,y, coded in x and y direction
+    # i.e. [vel_x, vel_y]
+    def set_velocity(self, x, y, velocity):
+        self.board[y][x][1] = velocity[0]
+        self.board[y][x][2] = velocity[1]
+
+    # Return the value of a particle in the grid
+    def get_value(self, x, y):
+        return self.board[y][x][0]
+
+    # Return the velocity of this particle in the x and y direction
+    def get_velocity(self, x, y):
+        return self.board[y][x][1], self.board[y][x][2]
 
     '''
-    Tuples is a list of tuples (x, y, val)
-    Used to copy the initial board after drawing the tiles    
+    Copy the rectangles drawn before the simulation to the board as x,y values   
     '''
-    def set_board(self, tuples):
-        for t in tuples:
-            self.board[t[1]][t[0]] = t[2]
+    def set_initial_values(self):
+        for r in rectangles:
+            coords = self.canvas.coords(r)
+            color = self.canvas.itemcget(r, "fill")
+
+            # Set to 100% water;
+            if color == self.watercolor:
+                self.board[coords[0]][coords[1]][0] = 1
+            # Set to stone;
+            else:
+                self.board[coords[0]][coords[1]][0] = 2
+
 
     '''
     Copies the board from this simulation board to target
     Used for creating a new board for the next time step in the simulation
     '''
+
     def copy_board(self, target):
         target.board = self.board
         target.board_width = self.board_width
-        target.board_height = self.board_height 
+        target.board_height = self.board_height
 
     '''
     Return the board as a list of tuples containing the coordinates that have value 1 or 2 (i.e. 0 values do not have to be drawn)
     '''
+
     def get_board(self):
         output = []
         for x in range(self.board_width):
@@ -68,6 +105,7 @@ class Board:
     Output will be a list of tuples (x,y,val) where every tuple represents a tile that has been changed
     This output should contain ALL the tiles that have to be redrawn after a time step
     '''
+
     def get_changed_values(self, old_board):
         output = []
         for x in range(self.board_width):
@@ -82,17 +120,9 @@ class Board:
 
 
 if __name__ == "__main__":
-    b = Board(5, 5)
-    b.set_value(4, 4, 2)
-    b.set_value(1, 3, 2)
-    b.set_value(2, 1, 2)
+    b = Board(None, None, 5, 5, 1)
+    b.board[4][4][0] = 2
+    b.board[2][3][0] = 2
+    b.board[1][0][0] = 2
     print("Board b:")
     b.print_board()
-
-    a = Board(5, 5)
-    print("Board a:")
-    a.print_board()
-
-    print("Changed values:")
-    values = b.get_changed_values(a)
-    print(values)

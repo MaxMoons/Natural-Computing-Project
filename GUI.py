@@ -43,7 +43,7 @@ class GUI(tk.Frame):
         self.y_pixels = int(self.canvas_height / self.pixel_size)
 
         # Size of one pixel
-        self.particle_size = 5
+        self.particle_size = int(self.pixel_size)
 
         self.root = tk.Tk()
         self.root.title("Super awesome animatie")

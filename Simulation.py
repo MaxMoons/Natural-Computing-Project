@@ -1,7 +1,7 @@
 import tkinter as tk
 import numpy as np
 from time import sleep
-import Board as B
+import Board as b
 
 
 class Simulation():
@@ -16,6 +16,9 @@ class Simulation():
         self.watercolor = 'DodgerBlue2'
         self.stonecolor = 'gray40'
         self.pixel_size = pixel_size
+        self.board = b.Board(rectangles=self.rectangles, canvas=self.canvas,
+                             canvas_width=self.canvas_width, canvas_height=self.canvas_height, pixel_size=self.pixel_size)
+        self.board.print_board()
 
     def simulate(self):
         iteration = 0
@@ -87,7 +90,8 @@ class Simulation():
         elif direction == "left":
             self.next_config.append((c[0]-self.pixel_size, c[1], self.watercolor))
 
-	# Verwijder alle rectangles die niet in de grid zijn van de rectangles list.
+
+    # Verwijder alle rectangles die niet in de grid zijn van de rectangles list.
     def clear_outliers(self):
         for r in self.rectangles:
             c = self.canvas.coords(r)
