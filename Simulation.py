@@ -1,4 +1,4 @@
-from tkinter import *
+import tkinter as tk
 import numpy as np
 from time import sleep
 import Board as B
@@ -104,7 +104,7 @@ class Simulation():
 
         # Iterate over all rectangles;
         for r in self.rectangles:
-            if iswater(r):
+            if self.iswater(r):
                 return True
 
     def drop_water(self):

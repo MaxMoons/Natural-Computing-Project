@@ -1,8 +1,8 @@
-from tkinter import *
+import tkinter as tk
 import Simulation as s
 
 
-class GUI(Frame):
+class GUI(tk.Frame):
     '''
 	Huidige idee:
 	Maak een frame met een aantal knoppen daarboven;
@@ -45,63 +45,63 @@ class GUI(Frame):
         # Size of one pixel
         self.particle_size = 5
 
-        self.root = Tk()
+        self.root = tk.Tk()
         self.root.title("Super awesome animatie")
 
         # Button panel frame stuff
         self.frame_width, self.frame_height = 600, 100
-        self.frame = Frame(self.root, bg='grey')
+        self.frame = tk.Frame(self.root, bg='grey')
         self.frame.pack(fill='x')
-        Label(self.frame, text="Draw mode:", bg='grey').pack(side='left')
+        tk.Label(self.frame, text="Draw mode:", bg='grey').pack(side='left')
         self.modelabeltext = 'Delete'
-        self.modelabel = Label(self.frame, bg='grey', text=self.modelabeltext, width=10)
+        self.modelabel = tk.Label(self.frame, bg='grey', text=self.modelabeltext, width=10)
         self.modelabel.pack(side='left')
-        self.air_button = Button(self.frame, text='Delete')
+        self.air_button = tk.Button(self.frame, text='Delete')
         self.air_button.pack(side='left', padx=10)
         self.air_button.bind('<Button-1>', self.delete_button_click)
-        self.water_button = Button(self.frame, text='Water')
+        self.water_button = tk.Button(self.frame, text='Water')
         self.water_button.pack(side='left', padx=10)
         self.water_button.bind('<Button-1>', self.water_button_click)
-        self.stone_button = Button(self.frame, text='Stone')
+        self.stone_button = tk.Button(self.frame, text='Stone')
         self.stone_button.pack(side='left', padx=10)
         self.stone_button.bind('<Button-1>', self.stone_button_click)
-        self.line_button = Button(self.frame, text='Line')
+        self.line_button = tk.Button(self.frame, text='Line')
         self.line_button.pack(side='left', padx=10)
         self.line_button.bind('<Button-1>', self.line_button_click)
 
-        self.start_button = Button(self.frame, text='Start simulation')
+        self.start_button = tk.Button(self.frame, text='Start simulation')
         self.start_button.pack(side='left', padx=50)
         self.start_button.bind('<Button-1>', self.start_button_click)
 
-        self.stop_button = Button(self.frame, text='Stop simulation')
+        self.stop_button = tk.Button(self.frame, text='Stop simulation')
         self.stop_button.pack(side='left', padx=10)
         self.stop_button.bind('<Button-1>', self.stop_button_click)
 
-        self.frame2 = Frame(self.root)
+        self.frame2 = tk.Frame(self.root)
         self.frame2.pack(fill='x')
 
-        Label(self.frame2, text="Animation speed:").pack(side=LEFT)
-        self.speed_input = Entry(self.frame2, width=10)
+        tk.Label(self.frame2, text="Animation speed:").pack(side=tk.LEFT)
+        self.speed_input = tk.Entry(self.frame2, width=10)
         self.speed_input.pack(padx=10, side='left')
         self.speed_input.insert(0, str(self.animation_speed))
 
-        Label(self.frame2, text="Gravitation:").pack(side='left')
-        self.Parameter1 = Entry(self.frame2, width=10)
+        tk.Label(self.frame2, text="Gravitation:").pack(side='left')
+        self.Parameter1 = tk.Entry(self.frame2, width=10)
         self.Parameter1.pack(padx=10, side='left')
         self.Parameter1.insert(0, "0")
 
-        Label(self.frame2, text="Formula:", bg='lightgrey').pack(side='left')
+        tk.Label(self.frame2, text="Formula:", bg='lightgrey').pack(side='left')
         self.formulalabeltext = "Convection-Diffusion"
-        self.formulalabel = Label(self.frame2, bg='lightgrey', text=self.formulalabeltext, width=17)
+        self.formulalabel = tk.Label(self.frame2, bg='lightgrey', text=self.formulalabeltext, width=17)
         self.formulalabel.pack(side='left')
-        self.formula_button = Button(self.frame2, text='Formula')
+        self.formula_button = tk.Button(self.frame2, text='Formula')
         self.formula_button.pack(side='left', padx=10)
         self.formula_button.bind('<Button-1>', self.formula_button_click)
 
         #self.Parameter2 = Entry(self.frame2, width=10)
         #self.Parameter2.pack(padx=10, side='left')
         #self.Parameter2.insert(0, "0")
-        self.w = Canvas(self.root, width=self.canvas_width, height=self.canvas_height)
+        self.w = tk.Canvas(self.root, width=self.canvas_width, height=self.canvas_height)
         self.w.bind("<Button-1>", self.leftclick)
         self.w.pack()
         self.initial_board = []
@@ -326,6 +326,6 @@ class GUI(Frame):
 
 
 if __name__ == "__main__":
-    root = Tk()
+    root = tk.Tk()
     guiFrame = GUI(root)
     root.mainloop()
