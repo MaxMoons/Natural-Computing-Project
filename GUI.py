@@ -117,14 +117,6 @@ class GUI(tk.Frame):
 	Mijn idee was om deze functie te vervangen door draw_grid waarbij er alleen maar rectangles ipv lijnen getekend worden
 	Hiermee krijg je wel een mooi idee over hoe er in het canvas getekend kan worden
 	'''
-    """
-	# Set the particle in our own grid. n is the type of particle.
-	def set_particle_in_grid(self, x, y):
-		for i in range (self.particle_size):
-			for j in range (self.particle_size):
-				self.grid[x+i][y+j] = self.mode
-	"""
-
     def create_grid(self):
         # vertical lines at an interval of "line_distance" pixel
         for x in range(self.particle_size, self.canvas_width, self.particle_size):
@@ -265,14 +257,41 @@ class GUI(tk.Frame):
 	Het hele grid steeds opnieuw tekenen kan wat omslachtig zijn; misschien iets bedenken waarbij alleen de veranderde
 	getallen opnieuw getekend worden (e.g. coordinatenstelsel van vorige iteratie meegeven en kijken of getal hetzelfde is?)
 	'''
+    # Set the start and end values of x and y to always catch the whole grid points that are clicked in.
+    def set_coords_to_grid(self,gradient):
+        if gradient > 0:
+            for i in range(self.particle_size):
+                if (self.line_startx - i) % self.particle_size == 0:
+                    self.line_startx = self.line_startx - i
+                if (self.line_endx - i) % self.particle_size == 0:
+                    self.line_endx = self.line_endx - i + self.particle_size            
+                if (self.line_starty - i) % self.particle_size == 0:
+                    self.line_starty = self.line_starty - i
+                if (self.line_endy - i) % self.particle_size == 0:
+                    self.line_endy = self.line_endy - i + self.particle_size
+	
     def drawline(self):
         #self.w.create_line( self.line_startx, self.line_starty, self.line_endx, self.line_endy)
         self.mode = 2
         xdifference = self.line_endx - self.line_startx
         ydifference = self.line_endy - self.line_starty
         self.gradient = ydifference/xdifference
-        for step in range(int(abs(xdifference))):
-            self.draw_particle(self.line_startx+step,self.line_starty+self.gradient*step)
+        self.set_coords_to_grid(self.gradient)
+        xdifference = self.line_endx - self.line_startx
+        ydifference = self.line_endy - self.line_starty
+        self.gradient = ydifference/xdifference
+        print("xdifference = " + str(xdifference))
+        if (self.gradient < 1 and self.gradient > 0) or (self.gradient > -1 and self.gradient < 0):
+            for step in range(int(abs(xdifference))):
+                if step%self.particle_size == 0:
+                    self.draw_particle(self.line_startx+step,self.line_starty+self.gradient*step)
+        else:
+            self.gradient = xdifference/ydifference
+            print("start x, y: " + str(self.line_startx) + " " + str(self.line_starty)) 
+            print("end x, y: " + str(self.line_endx) + " " + str(self.line_endy)) 
+            for step in range(int(abs(ydifference))):
+                if step%self.particle_size == 0:
+                    self.draw_particle(self.line_startx+step*self.gradient,self.line_starty+step)
         self.mode = 3
 	
     """
@@ -288,6 +307,9 @@ class GUI(tk.Frame):
             temporaryy = self.line_starty
             self.line_starty = self.line_endy
             self.line_endy = temporaryy
+        print("start x,  y: " + str(self.line_startx) + ", " + str(self.line_starty))
+        print("end x,  y: " + str(self.line_endx) + ", " + str(self.line_endy))
+
 	
     def draw_grid(self, coords):
         for y in range(self.canvas_height):
@@ -313,13 +335,13 @@ class GUI(tk.Frame):
             self.line_startx = x0
             self.line_starty = y0
             self.mode = 4
-            print("start x,  y: " + str(self.line_startx) + ", " + str(self.line_starty))
         elif self.mode == 4:
             self.line_endx = x0
             self.line_endy = y0
             self.mode = 3
+            print("start x, y: " + str(self.line_startx) + " " + str(self.line_starty)) 
+            print("end x, y: " + str(self.line_endx) + " " + str(self.line_endy)) 
             self.minimizestart()
-            print("start x,  y: " + str(self.line_startx) + ", " + str(self.line_starty))
             self.drawline()
         else:
             self.draw_particle(grid_x, grid_y)
