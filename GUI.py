@@ -117,12 +117,12 @@ class GUI(tk.Frame):
         # Stone
         if val == -1:
             r = self.w.create_rectangle(x, y, x2, y2, fill=self.stonecolor, outline=self.stonecolor)
-            self.rectangles.append(r)
+            self.rectangles.append((r, x, y))
 
         # 100% water
         elif val == 1:
             r = self.w.create_rectangle(x, y, x2, y2, fill=self.watercolor, outline=self.watercolor)
-            self.rectangles.append(r)
+            self.rectangles.append((r, x, y))
 
         # <100% water; adds transparency
         elif 0 < val < 1:
@@ -132,20 +132,18 @@ class GUI(tk.Frame):
                     fill = kwargs.pop('fill')
                     fill = self.root.winfo_rgb(fill) + (alpha,)
                     image = Image.new('RGBA', (x2 - x1, y2 - y1), fill)
-                    self.rectangles.append(ImageTk.PhotoImage(image))
-                    self.w.create_image(x1, y1, image=self.rectangles[-1], anchor='nw')
-                self.w.create_rectangle(x1, y1, x2, y2, **kwargs)
+                    img = ImageTk.PhotoImage(image)
+                    self.w.create_image(x1, y1, image=img, anchor='nw')
+                    self.rectangles.append((img, x, y))
+                #self.w.create_rectangle(x1, y1, x2, y2, **kwargs)
             create_rectangle(x, y, x2, y2, fill='blue', alpha=val, outline="")
 
         # Nothing; val = 0, so remove that rectangle
         else:
             for r in self.rectangles:
-                c = self.w.coords(r)
-                if len(c) != 0 and c[0] == x and c[1] == y:
+                if r[1] == x and r[2] == y:
                     print("Rectangle found!")
-                    self.w.delete(r)
-                    self.rectangles.remove(r)
-                else:
+                    self.w.delete(r[0])
                     self.rectangles.remove(r)
 
 
@@ -162,7 +160,7 @@ class GUI(tk.Frame):
         print("Water modus")
         self.modelabeltext = 'Water'
         self.modelabel.configure(text='Water')
-        self.mode = 1
+        self.mode = .1
 
     def line_button_click(self, event):
         print("Press for first point of line")
