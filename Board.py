@@ -6,19 +6,14 @@ import GUI as gui
 class Board:
     def __init__(self, rectangles, canvas, canvas_width, canvas_height, pixel_size):
         # Coordinate grid for drawing stuff; first index is y (vertical), second is x (horizontal)
-        self.canvas = canvas
-        self.pixel_size = pixel_size
-        self.board = np.zeros((canvas_height/pixel_size, canvas_width/pixel_size), dtype=float)
-        self.set_initial_values(rectangles)
-
-
+        self.board = np.zeros((canvas_height//pixel_size, canvas_width//pixel_size), dtype=float)
+        self.set_initial_values(canvas, rectangles, pixel_size)
 
     # 0 = nothing
     # 0-1 = water (i.e. 1 = 100% concentration)
     # -1 = stone
     def set_value(self, x, y, val):
-        coordinates = self.canvas.coords(rectangle)
-        self.board[int(coordinates[1] / self.pixel_size)][int(coordinates[0] / self.pixel_size)] = val
+        self.board[y][x] = val
 
     # Return the value of a particle in the grid
     def get_value(self, x, y):
@@ -27,17 +22,16 @@ class Board:
     '''
     Copy the rectangles drawn before the simulation to the board as x,y values   
     '''
-    def set_initial_values(self, rectangles):
+    def set_initial_values(self, canvas, rectangles, pixel_size):
         for r in rectangles:
-            coords = self.canvas.coords(r)
-            color = self.canvas.itemcget(r, "fill")
+            coords = canvas.coords(r)
 
-            # Set to 100% water;
-            if color == self.watercolor:
-                self.board[coords[0]][coords[1]][0] = 1
-            # Set to stone;
+            # Color = water;
+            if canvas.itemcget(r, "fill") == 'DodgerBlue2':
+                self.board[coords[0]//pixel_size][coords[1]//pixel_size][0] = 1
+            # Or stone;
             else:
-                self.board[coords[0]][coords[1]][0] = -1
+                self.board[coords[0]//pixel_size][coords[1]//pixel_size][0] = -1
 
     def get_board(self):
         return self.board
