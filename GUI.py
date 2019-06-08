@@ -196,9 +196,7 @@ class GUI(tk.Frame):
         print("Start simulation")
         self.animation_speed = self.speed_input.get()
         print("Animation speed = " + str(self.animation_speed))
-        simulation = s.Simulation(canvas=self.w, canvas_width=self.canvas_width, canvas_height=self.canvas_height,
-                                  rectangles=self.rectangles, animation_speed=self.animation_speed,
-                                iterations=self.number_of_iterations, pixel_size=self.particle_size)
+        simulation = s.Simulation(animation_speed=self.animation_speed, board=self.board)
         self.rectangles = simulation.simulate()
         return True
 
