@@ -5,20 +5,10 @@ import Board as b
 
 
 class Simulation():
-    def __init__(self, canvas, canvas_width, canvas_height, rectangles, animation_speed, iterations, pixel_size):
-        self.canvas = canvas
-        self.canvas_width = canvas_width
-        self.canvas_height = canvas_height
-        self.rectangles = rectangles
+    def __init__(self, animation_speed, board):
         self.next_config = []
         self.animation_speed = animation_speed
-        self.iterations = iterations
-        self.watercolor = 'DodgerBlue2'
-        self.stonecolor = 'gray40'
-        self.pixel_size = pixel_size
-        self.board = b.Board(rectangles=self.rectangles, canvas=self.canvas,
-                             canvas_width=self.canvas_width, canvas_height=self.canvas_height, pixel_size=self.pixel_size)
-        self.board.print_board()
+        self.board = board
 
     def simulate(self):
         iteration = 0
@@ -32,12 +22,6 @@ class Simulation():
             self.canvas.update()
             self.clear_outliers()
         return self.rectangles
-            # Bereken uit rectangles de posities van de nieuwe rectangles get_next_config
-                # Sla iedere nieuwe rectangle op in next_config
-            # Verwijder de huidige getekende rectangles clear_canvas
-            # Teken de rectangles in next_config (draw_rectangles)
-            # Sla next_config op als rectangles (update_lists)
-            # Leeg de list van next_config (update_lists)
 
     '''
     Hierin wordt de configuratie van de volgende iteratie berekend
