@@ -176,39 +176,6 @@ class GUI(tk.Frame):
             return True
 
     '''
-	Draw all the tuple that it gets. Function is based on the draw_particle function but now without
-	adding or removing tuples from the tuples list, just drawing.
-	'''
-
-    def draw_tuple(self, tuple):
-        x1 = tuple[0]
-        y1 = tuple[1]
-        n = tuple[2]
-        # Gebruik self.particle size om uit x1,y1 de x2,y2 af te leiden
-        # 2 = stone
-        # A solid filled dark-gray rectangle (gray40?)
-        if n == 2:
-            self.w.create_rectangle(x1, y1, x1 + self.particle_size, y1 + self.particle_size, fill='gray40')
-            return True
-
-        # 1 = water
-        # A solid filled blue rectangle (DodgerBlue2?)
-        elif n == 1:
-            r = self.w.create_rectangle(x1, y1, x1 + self.particle_size, y1 + self.particle_size, fill='DodgerBlue2')
-
-            return True
-
-        # A rectangle with light-gray outline (gray80?) and no fill (snow?)
-        #
-        elif n == 0:
-            for r in self.w.winfo_children():
-                coordinates = r.coords()
-                self.w.create_rectangle(x1, y1, x1 + self.particle_size, y1 + self.particle_size, fill='snow',
-                                        outline='gray80')
-        else:
-            return True
-
-    '''
 	For all water rectangles in the list of tuples of the current board, add 1 to the height of the water
 	rectangle to let it drop 1 step. Save this in the list of new_tuples.
 	'''
