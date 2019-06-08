@@ -31,6 +31,7 @@ class GUI(tk.Frame):
         self.animation_speed = 0.25
         self.watercolor = 'DodgerBlue2'
         self.stonecolor = 'gray40'
+        self.simulator = s.Simulation()
         self.line_startx = 0
         self.line_starty = 0
         self.line_endx = 0
@@ -196,8 +197,8 @@ class GUI(tk.Frame):
         print("Start simulation")
         self.animation_speed = self.speed_input.get()
         print("Animation speed = " + str(self.animation_speed))
-        simulation = s.Simulation(animation_speed=self.animation_speed, board=self.board)
-        self.rectangles = simulation.simulate()
+        simulation = self.simulator.simulate(board=self.board, formula=self.formulalabel)
+        self.board = simulation.simulate()
         return True
 
 
@@ -207,7 +208,6 @@ class GUI(tk.Frame):
 
 
     def formula_button_click(self, event):
-        print("Hoi")
         if self.formulalabeltext == "Convection-Diffusion":
             self.formulalabeltext = "Navier–Stokes"
         else:
