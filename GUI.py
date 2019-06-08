@@ -1,5 +1,7 @@
 import tkinter as tk
 import Simulation as s
+from PIL import Image, ImageTk
+import Board as b
 
 
 class GUI(tk.Frame):
@@ -36,6 +38,7 @@ class GUI(tk.Frame):
         self.line_endx = 0
         self.line_endy = 0
         self.gradient = 0
+        self.stop_animation = True
 
         # Amount of x and y pixels; y follows from height and pixel size as pixels are square
         self.x_pixels = 100
@@ -126,6 +129,35 @@ class GUI(tk.Frame):
         for y in range(self.particle_size, self.canvas_height, self.particle_size):
             self.w.create_line(0, y, self.canvas_width, y, fill="gray80", width=0.15)
 
+    def draw_element(self, x, y, val):
+        x2 = x + self.pixel_size
+        y2 = y + self.pixel_size
+
+        if val == -1:
+            r = self.w.create_rectangle(x, y, x2, y2, fill=self.stonecolor)
+            self.rectangles.append(r)
+
+        elif val == 1:
+            r = self.w.create_rectangle(x, y, x2, y2, fill=self.watercolor)
+            self.rectangles.append(r)
+
+        # Used for water concentrations below 100%; adds transparency
+        elif 0 < val < 1:
+            alpha = int(val * 255)
+            fill = root.winfo_rgb(self.watercolor) + (alpha,)
+            image = Image.new('RGBA', (x2 - x, y2 - y), fill)
+            self.rectangles.append(ImageTk.PhotoImage(image))
+            self.w.create_image(x, y, image=self.rectangles[-1], anchor='nw')
+
+        # Val = 0
+        else:
+            for r in self.rectangles:
+                c = self.w.coords(r)
+                if c[0] == x and c[1] == y:
+                    print("Rectangle found!")
+                    self.w.delete(r)
+                    self.rectangles.remove(r)
+
     '''
 	This function is called to draw a particle in the given coordinate when redrawing the entire grid
 	It should be called from the mousehandler
@@ -194,8 +226,11 @@ class GUI(tk.Frame):
 
     def start_button_click(self, event):
         print("Start simulation")
+        self.stop_animation = False
         self.animation_speed = self.speed_input.get()
         print("Animation speed = " + str(self.animation_speed))
+
+        self.board = b.Board(self.rectangles, self.w, self.canvas_width, self.canvas_height, self.pixel_size)
         simulation = s.Simulation(canvas=self.w, canvas_width=self.canvas_width, canvas_height=self.canvas_height,
                                   rectangles=self.rectangles, animation_speed=self.animation_speed,
                                 iterations=self.number_of_iterations, pixel_size=self.particle_size)
@@ -205,6 +240,8 @@ class GUI(tk.Frame):
 
     def stop_button_click(self, event):
         print("Stop simulation")
+        # Used in simulation to stop an otherwise indefinitely running simulation
+        self.stop_animation = True
         self.number_of_iterations = 0
 
 
@@ -251,14 +288,14 @@ class GUI(tk.Frame):
         if (self.gradient < 1 and self.gradient > 0) or (self.gradient > -1 and self.gradient < 0):
             for step in range(int(abs(xdifference))):
                 if step%self.particle_size == 0:
-                    self.draw_particle(self.line_startx+step,self.line_starty+self.gradient*step)
+                    self.draw_element(self.line_startx+step,self.line_starty+self.gradient*step,self.mode)
         else:
             self.gradient = xdifference/ydifference
             print("start x, y: " + str(self.line_startx) + " " + str(self.line_starty)) 
             print("end x, y: " + str(self.line_endx) + " " + str(self.line_endy)) 
             for step in range(int(abs(ydifference))):
                 if step%self.particle_size == 0:
-                    self.draw_particle(self.line_startx+step*self.gradient,self.line_starty+step)
+                    self.draw_element(self.line_startx+step*self.gradient, self.line_starty+step, self.mode)
         self.mode = 3
 	
     """
@@ -276,12 +313,6 @@ class GUI(tk.Frame):
             self.line_endy = temporaryy
         print("start x,  y: " + str(self.line_startx) + ", " + str(self.line_starty))
         print("end x,  y: " + str(self.line_endx) + ", " + str(self.line_endy))
-
-	
-    def draw_grid(self, coords):
-        for y in range(self.canvas_height):
-            for x in range(self.canvas_width):
-                self.draw_particle(coords[y][x], x * self.particle_size, y * self.particle_size)
 
     def leftclick(self, eventorigin):
         global x0, y0
@@ -311,7 +342,7 @@ class GUI(tk.Frame):
             self.minimizestart()
             self.drawline()
         else:
-            self.draw_particle(grid_x, grid_y)
+            self.draw_element(grid_x, grid_y, self.mode)
 
 
 if __name__ == "__main__":
