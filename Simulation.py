@@ -6,12 +6,12 @@ import Board as b
 
 class Simulation():
     def __init__(self):
-        self.matrices = createMatrices()
+        self.matrices = self.createMatrices()
 
-    def simulate(self, board, formula):
-        
+    # NB Stones is aantal stenen in grid
+    def simulate(self, board, formula, stones):
         return board
-	
+
     def createMatrices(self):
         matrices = np.zeros((3,3,32), dtype=float)
         #Look at diffusion/NS matrices. Diagonal values DO NOT MATTER, thats why size 2**5=32

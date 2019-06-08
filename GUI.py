@@ -1,35 +1,17 @@
 import tkinter as tk
-import Simulation as s
 from PIL import Image, ImageTk
 import Board as b
+import Simulation as s
 
 
 class GUI(tk.Frame):
-    '''
-	Huidige idee:
-	Maak een frame met een aantal knoppen daarboven;
-	Air: Om pixels te wissen
-	Stone: Om steen te plaatsen (waar water niet doorheen kan)
-	Water: Om water te plaatsen
-		Zelf alle tegels plaatsen of bijvoorbeeld ook een waterbron (i.e. een tegel die water genereert)
-	Waterbron: Een tegel waarin water gegenereert wordt als er geen water in zit (als een soort waterval)
-	Start animation: Begin het animeren nadat alles getekend is
-	Animation speed: Snelheid waarmee de animatie loopt
-		Aantal refreshes/sec?
-	Stop animation (?): Stop de animatie
-
-	Inputvakken voor parameters van de formules
-	'''
-
-    def __init__(self, root, **kw):
+    def __init__(self, root, n_pixels=100, **kw):
         super().__init__(**kw)
-        self.root = root
         # Width and height of the canvas
         self.canvas_width, self.canvas_height = 600, 500
         self.frame_width, self.frame_height = 600, 100
         self.mode = 0
         self.simulate = False
-        self.number_of_iterations = 10
         self.animation_speed = 0.25
         self.watercolor = 'DodgerBlue2'
         self.stonecolor = 'gray40'
@@ -42,14 +24,11 @@ class GUI(tk.Frame):
         self.stop_animation = True
 
         # Amount of x and y pixels; y follows from height and pixel size as pixels are square
-        self.x_pixels = 100
-        self.pixel_size = self.canvas_width / self.x_pixels
-        self.y_pixels = int(self.canvas_height / self.pixel_size)
+        self.x_pixels = n_pixels
+        self.pixel_size = self.canvas_width // n_pixels
+        self.y_pixels = self.canvas_height // self.pixel_size
 
-        # Size of one pixel
-        self.particle_size = int(self.pixel_size)
-
-        self.root = tk.Tk()
+        self.root = root
         self.root.title("Super awesome animatie")
 
         # Button panel frame stuff
@@ -112,9 +91,10 @@ class GUI(tk.Frame):
         self.rectangles = []
         self.new_tuples = []
         self.board = None
-        # self.board = B.Board(self.canvas_width, self.canvas_height)
-        # self.target_board = B.Board(self.canvas_width, self.canvas_height)
         self.create_grid()
+
+    def get_root(self):
+        return self.root
 
     '''
 	Deze functie heb ik van internet gehaald om een grid te tekenen
@@ -123,88 +103,56 @@ class GUI(tk.Frame):
 	'''
     def create_grid(self):
         # vertical lines at an interval of "line_distance" pixel
-        for x in range(self.particle_size, self.canvas_width, self.particle_size):
+        for x in range(0, self.canvas_width, self.pixel_size):
             self.w.create_line(x, 0, x, self.canvas_height, fill="gray80", width=0.15)
 
         # horizontal lines at an interval of "line_distance" pixel
-        for y in range(self.particle_size, self.canvas_height, self.particle_size):
+        for y in range(0, self.canvas_height, self.pixel_size):
             self.w.create_line(0, y, self.canvas_width, y, fill="gray80", width=0.15)
 
     def draw_element(self, x, y, val):
         x2 = x + self.pixel_size
         y2 = y + self.pixel_size
 
+        # Stone
         if val == -1:
-            r = self.w.create_rectangle(x, y, x2, y2, fill=self.stonecolor)
+            r = self.w.create_rectangle(x, y, x2, y2, fill=self.stonecolor, outline=self.stonecolor)
             self.rectangles.append(r)
 
+        # 100% water
         elif val == 1:
-            r = self.w.create_rectangle(x, y, x2, y2, fill=self.watercolor)
+            r = self.w.create_rectangle(x, y, x2, y2, fill=self.watercolor, outline=self.watercolor)
             self.rectangles.append(r)
 
-        # Used for water concentrations below 100%; adds transparency
+        # <100% water; adds transparency
         elif 0 < val < 1:
-            alpha = int(val * 255)
-            fill = root.winfo_rgb(self.watercolor) + (alpha,)
-            image = Image.new('RGBA', (x2 - x, y2 - y), fill)
-            self.rectangles.append(ImageTk.PhotoImage(image))
-            self.w.create_image(x, y, image=self.rectangles[-1], anchor='nw')
+            def create_rectangle(x1, y1, x2, y2, **kwargs):
+                if 'alpha' in kwargs:
+                    alpha = int(kwargs.pop('alpha') * 255)
+                    fill = kwargs.pop('fill')
+                    fill = self.root.winfo_rgb(fill) + (alpha,)
+                    image = Image.new('RGBA', (x2 - x1, y2 - y1), fill)
+                    self.rectangles.append(ImageTk.PhotoImage(image))
+                    self.w.create_image(x1, y1, image=self.rectangles[-1], anchor='nw')
+                self.w.create_rectangle(x1, y1, x2, y2, **kwargs)
+            create_rectangle(x, y, x2, y2, fill='blue', alpha=val, outline="")
 
-        # Val = 0
+        # Nothing; val = 0, so remove that rectangle
         else:
             for r in self.rectangles:
                 c = self.w.coords(r)
-                if c[0] == x and c[1] == y:
+                if len(c) != 0 and c[0] == x and c[1] == y:
                     print("Rectangle found!")
                     self.w.delete(r)
                     self.rectangles.remove(r)
-
-    '''
-	This function is called to draw a particle in the given coordinate when redrawing the entire grid
-	It should be called from the mousehandler
-	canvas is the space the particle should be drawn in.
-	n is the type of particle that should be drawn (i.e. 0=air, 1=water, 2=stone)
-	x, y are x and y coordinates (x1,y1) of the pixel
-	pixel_size is the fixed pixel size that is used to determine x2 and y2
-	tkinter colors: http://www.science.smith.edu/dftwiki/index.php/Color_Charts_for_TKinter
-	'''
-    def draw_particle(self, x1, y1):
-        # Gebruik self.particle size om uit x1,y1 de x2,y2 af te leiden
-        # 2 = stone
-        # A solid filled dark-gray rectangle (gray40?)
-        # Add the tuple to the tuples list.
-        if self.mode == 2:
-            r = self.w.create_rectangle(x1, y1, x1 + self.particle_size, y1 + self.particle_size, fill=self.stonecolor)
-            self.rectangles.append(r)
-            self.initial_board.append((x1, y1, self.mode))
-            return True
-
-        # 1 = water
-        # A solid filled blue rectangle (DodgerBlue2?)
-        # Add the tuple to the tuples list.
-        elif self.mode == 1:
-            r = self.w.create_rectangle(x1, y1, x1 + self.particle_size, y1 + self.particle_size, fill=self.watercolor)
-            self.rectangles.append(r)
-            self.initial_board.append((x1, y1, self.mode))
-            return True
-
-        # A rectangle with light-gray outline (gray80?) and no fill (snow?)
-        # If there is a water or stone rectangle, remove it.
-        elif self.mode == 0:
-            for r in self.rectangles:
-                c = self.w.coords(r)
-                if c[0] == x1 and c[1] == y1:
-                    print("Rectangle found!")
-                    self.w.delete(r)
+                else:
                     self.rectangles.remove(r)
-                    return True
-            return True
+
 
     '''
-	For all water rectangles in the list of tuples of the current board, add 1 to the height of the water
-	rectangle to let it drop 1 step. Save this in the list of new_tuples.
-	'''
-
+    For all water rectangles in the list of tuples of the current board, add 1 to the height of the water
+    rectangle to let it drop 1 step. Save this in the list of new_tuples.
+    '''
     def delete_button_click(self, event):
         print("Delete modus")
         self.modelabel.configure(text='Delete')
@@ -219,11 +167,11 @@ class GUI(tk.Frame):
     def line_button_click(self, event):
         print("Press for first point of line")
         self.mode = 3
-		
+
     def stone_button_click(self, event):
         print("Stone modus")
         self.modelabel.configure(text='Stone')
-        self.mode = 2
+        self.mode = -1
 
     def start_button_click(self, event):
         print("Start simulation")
@@ -231,18 +179,15 @@ class GUI(tk.Frame):
         self.animation_speed = self.speed_input.get()
         print("Animation speed = " + str(self.animation_speed))
         self.board = b.Board(self.rectangles, self.w, self.canvas_width, self.canvas_height, self.pixel_size)
-        simulation = self.simulator.simulate(board=self.board, formula=self.formulalabel)
-        self.rectangles = simulation.simulate()
-        self.board = simulation.simulate()
+        self.simulator.simulate(board=self.board, formula=self.formulalabel, stones=self.board.stones)
         return True
-
 
     def stop_button_click(self, event):
         print("Stop simulation")
         # Used in simulation to stop an otherwise indefinitely running simulation
+        # This value is returned from redraw board, which is called after every animation step, to notify simulation
+        # of whether it should continue simulating or not
         self.stop_animation = True
-        self.number_of_iterations = 0
-
 
     def formula_button_click(self, event):
         if self.formulalabeltext == "Convection-Diffusion":
@@ -253,25 +198,25 @@ class GUI(tk.Frame):
         return True
 
     '''
-	Draw the entire grid based on the numbers stored in coords
-	Gebruik draw_particle om iedere coordinaat te tekenen
-	
-	Het hele grid steeds opnieuw tekenen kan wat omslachtig zijn; misschien iets bedenken waarbij alleen de veranderde
-	getallen opnieuw getekend worden (e.g. coordinatenstelsel van vorige iteratie meegeven en kijken of getal hetzelfde is?)
-	'''
+    Draw the entire grid based on the numbers stored in coords
+    Gebruik draw_particle om iedere coordinaat te tekenen
+    
+    Het hele grid steeds opnieuw tekenen kan wat omslachtig zijn; misschien iets bedenken waarbij alleen de veranderde
+    getallen opnieuw getekend worden (e.g. coordinatenstelsel van vorige iteratie meegeven en kijken of getal hetzelfde is?)
+    '''
     # Set the start and end values of x and y to always catch the whole grid points that are clicked in.
     def set_coords_to_grid(self,gradient):
         if gradient > 0:
-            for i in range(self.particle_size):
-                if (self.line_startx - i) % self.particle_size == 0:
+            for i in range(self.pixel_size):
+                if (self.line_startx - i) % self.pixel_size == 0:
                     self.line_startx = self.line_startx - i
-                if (self.line_endx - i) % self.particle_size == 0:
-                    self.line_endx = self.line_endx - i + self.particle_size            
-                if (self.line_starty - i) % self.particle_size == 0:
+                if (self.line_endx - i) % self.pixel_size == 0:
+                    self.line_endx = self.line_endx - i + self.pixel_size
+                if (self.line_starty - i) % self.pixel_size == 0:
                     self.line_starty = self.line_starty - i
-                if (self.line_endy - i) % self.particle_size == 0:
-                    self.line_endy = self.line_endy - i + self.particle_size
-	
+                if (self.line_endy - i) % self.pixel_size == 0:
+                    self.line_endy = self.line_endy - i + self.pixel_size
+
     def drawline(self):
         #self.w.create_line( self.line_startx, self.line_starty, self.line_endx, self.line_endy)
         self.mode = 2
@@ -285,17 +230,17 @@ class GUI(tk.Frame):
         print("xdifference = " + str(xdifference))
         if (self.gradient < 1 and self.gradient > 0) or (self.gradient > -1 and self.gradient < 0):
             for step in range(int(abs(xdifference))):
-                if step%self.particle_size == 0:
-                    self.draw_element(self.line_startx+step,self.line_starty+self.gradient*step,self.mode)
+                if step%self.pixel_size == 0:
+                    self.draw_element(self.line_startx+step,self.line_starty+self.gradient*step, -1)
         else:
             self.gradient = xdifference/ydifference
             print("start x, y: " + str(self.line_startx) + " " + str(self.line_starty)) 
             print("end x, y: " + str(self.line_endx) + " " + str(self.line_endy)) 
             for step in range(int(abs(ydifference))):
-                if step%self.particle_size == 0:
-                    self.draw_element(self.line_startx+step*self.gradient, self.line_starty+step, self.mode)
+                if step%self.pixel_size == 0:
+                    self.draw_element(self.line_startx+step*self.gradient, self.line_starty+step, -1)
         self.mode = 3
-	
+
     """
     Deze functie verandert het beginpunt van de lijn als het nodig is. Er wordt namelijk altijd van links naar rechts getekend in drawline().
     """
@@ -320,11 +265,11 @@ class GUI(tk.Frame):
         # Find the closest 'whole'-grid point
         grid_x = 0
         grid_y = 0
-        for i in range(self.particle_size):
-            if (x0 - i) % self.particle_size == 0:
+        for i in range(self.pixel_size):
+            if (x0 - i) % self.pixel_size == 0:
                 grid_x = x0 - i
-        for j in range(self.particle_size):
-            if (y0 - j) % self.particle_size == 0:
+        for j in range(self.pixel_size):
+            if (y0 - j) % self.pixel_size == 0:
                 grid_y = y0 - j
         # If draw line modus is on:
         if self.mode == 3:
@@ -342,8 +287,28 @@ class GUI(tk.Frame):
         else:
             self.draw_element(grid_x, grid_y, self.mode)
 
+    # This function is called from simulation; it is used to draw the entire representation of the board after 1 iteration
+    def redraw_board(self, b):
+        # Delete all non-stone (water) tiles, i.e. assume all water tiles change position/value
+        for r in self.rectangles:
+            if self.w.itemcget(r, "fill") != self.stonecolor:
+                self.w.delete(r)
+                self.rectangles.remove(r)
+
+        # Draw new water tiles that were given by the representation
+        # I.e. > 0 means it's not stone or air
+        for y in range(self.canvas_height // self.pixel_size):
+            for x in range(self.canvas_width // self.pixel_size):
+                val = b.get_value(x, y)
+                if val > 0:
+                    self.draw_element(x, y, val)
+        # Return stop_animation to notify Simulation of whether it should continue to simulate or not
+        return self.stop_animation
+
 
 if __name__ == "__main__":
+    x_pixels = 50
     root = tk.Tk()
-    guiFrame = GUI(root)
+    gui = GUI(root, x_pixels)
+    root = gui.get_root()
     root.mainloop()
