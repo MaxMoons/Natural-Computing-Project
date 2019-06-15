@@ -130,10 +130,9 @@ class GUI(tk.Frame):
 
         # Stone
         if val == -1:
-            r = self.w.create_rectangle(x, y, x2, y2, fill=self.stonecolor, outline= self.stonecolor)
-            print(type(r))
+            r = self.w.create_rectangle(x, y, x2, y2, fill=self.stonecolor, outline=self.stonecolor)
             self.rectangles.append((r, x, y))
-            self.board.set_value(x//self.pixel_size, y//self.pixel_size, val)
+            self.board.set_value(int(x//self.pixel_size), int(y//self.pixel_size), val)
 
         # <100% water; adds transparency
         elif 0 < val <= 1:
@@ -144,7 +143,6 @@ class GUI(tk.Frame):
                     fill = self.root.winfo_rgb(fill) + (alpha,)
                     image = Image.new('RGBA', (x2 - x1, y2 - y1), fill)
                     img = ImageTk.PhotoImage(image)
-                    print(type(img))
                     self.w.create_image(x1, y1, image=img, anchor='nw')
                     self.rectangles.append((img, x, y))
             create_rectangle(x, y, x2, y2, fill='blue', alpha=val, outline="")
@@ -154,40 +152,35 @@ class GUI(tk.Frame):
         else:
             for r in self.rectangles:
                 if r[1] == x and r[2] == y:
-                    print("Rectangle found!")
                     self.board.set_value(x//self.pixel_size, y//self.pixel_size, 0)
                     self.w.delete(r[0])
                     self.rectangles.remove(r)
 
     # Set paint mode to delete; used to delete pixels
     def delete_button_click(self, event):
-        print("Delete modus")
         self.modelabel.configure(text='Delete')
         self.mode = 0
 
     # Set paint mode to water
     def water_button_click(self, event):
-        print("Water modus")
         self.modelabeltext = 'Water'
         self.modelabel.configure(text='Water')
         self.mode = 1
 
     # Set paint mode to line; the next click will define the starting point of the line
     def line_button_click(self, event):
-        print("Press for first point of line")
-        self.modelabel.configure(text='Line')
+        self.modelabel.configure(text='Line (start)')
         self.mode = 3
 
     # Set paint mode to stone
     def stone_button_click(self, event):
-        print("Stone modus")
         self.modelabel.configure(text='Stone')
         self.mode = -1
 
     # Start button is clicked; set simulation to true and save the parameters that have been set so that they can be
     # used in the simulation
     def start_button_click(self, event):
-        print("Start simulation")
+        print("Started simulation!")
         self.simulation_parameters = [self.speed_input.get(), self.step_input.get(), self.gravitation.get()]
         stone_count = self.board.get_stone_amount()
         self.simulator = s.Simulation(formula=self.formulalabel, stones=stone_count, parameters=self.simulation_parameters)
@@ -198,7 +191,7 @@ class GUI(tk.Frame):
 
     @staticmethod
     def stop_button_click(event):
-        print("Stop simulation")
+        print("Stopped simulation!")
         global simulating
         simulating = False
         # Used in simulation to stop an otherwise indefinitely running simulation
@@ -218,7 +211,6 @@ class GUI(tk.Frame):
             b = self.simulator.simulate(board=self.board)
             self.redraw_board(b)
             time.sleep(int(self.speed_input.get())/1000)
-        print(self.speed_input.get())
         self.root.after(int(self.speed_input.get()), self.scanning)
 
     # The user clicks on a pixel on the grid => draw elements on that pixel using the mode that has been set
@@ -228,24 +220,22 @@ class GUI(tk.Frame):
         y0 = eventorigin.y
         linex1 = 0
         # Find the closest 'whole'-grid point
-        grid_x = 0
-        grid_y = 0
-        for i in range(self.pixel_size):
-            if (x0 - i) % self.pixel_size == 0:
-                grid_x = x0 - i
-        for j in range(self.pixel_size):
-            if (y0 - j) % self.pixel_size == 0:
-                grid_y = y0 - j
-        # If draw line modus is on:
+        grid_x, grid_y = self.identify_pixel(x0, y0)
+
+        # Draw starting point of the line:
         if self.mode == 3:
             self.line_startx, self.line_starty = self.identify_pixel(x0, y0)
+            self.modelabel.configure(text='Line (end)')
             self.mode = 4
+
+        # Drawing end point of the line
         elif self.mode == 4:
             self.line_endx, self.line_endy = self.identify_pixel(x0, y0)
             self.mode = 3
-            #self.minimizestart()
-            #self.drawline()
+            self.modelabel.configure(text='Line (start)')
             self.draw_stone_line()
+
+        # Water mode is on
         elif self.mode == 1:
             val = int(self.water_input.get())
             if val < 0:
@@ -256,7 +246,7 @@ class GUI(tk.Frame):
         else:
             self.widen_grid(grid_x, grid_y, self.mode)
 
-    # This function is called from simulation; it is used to draw the entire representation of the board after 1 iteration
+    # Redraw the grid using the 2D array that is given
     def redraw_board(self, b):
         # Delete all non-stone (water) tiles, i.e. assume all water tiles change position/value
         self.w.delete("all")
@@ -271,12 +261,10 @@ class GUI(tk.Frame):
                 val = temp_board.get_value(x, y)
                 self.draw_element(x*self.pixel_size, y*self.pixel_size, val)
         # Return stop_animation to notify Simulation of whether it should continue to simulate or not
-        return self.stop_animation
 
     # Used to draw a line of stone after the coordinates of the start and end point have been clicked
     def draw_stone_line(self):
         x_step, y_step = self.get_steps()
-        print(x_step, y_step)
         line = self.get_line_pixels(self.line_startx, self.line_starty, self.line_endx, self.line_endy, x_step, y_step)
         line = self.widen_line(line)
         for p in line:
@@ -299,7 +287,6 @@ class GUI(tk.Frame):
         for p in line:
             x_space = np.linspace(p[0]-(self.line_width//2)*self.pixel_size, p[0]+(self.line_width//2)*self.pixel_size, self.line_width+1)
             y_space = np.linspace(p[1]-(self.line_width//2)*self.pixel_size, p[1]+(self.line_width//2)*self.pixel_size, self.line_width+1)
-            print("x_space, y_space: " + str(x_space) + ", " + str(y_space))
             for x in x_space:
                 for y in y_space:
                     if self.canvas_width-self.pixel_size >= x >= 0 and self.canvas_height-self.pixel_size >= y >= 0:
@@ -321,7 +308,8 @@ class GUI(tk.Frame):
         for x in x_space:
             for y in y_space:
                 self.draw_element(int(x),int(y),val)
-    
+
+    # Obtain the pixels that fall between the start and end point of the line
     def get_line_pixels(self, x1, y1, x2, y2, x_step, y_step):
         pixels = []
         # Set coords to pixel center rather than top-left corner
