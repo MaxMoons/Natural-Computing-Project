@@ -14,7 +14,7 @@ class GUI(tk.Frame):
         self.mode = 0
         self.simulate = False
         self.animation_speed = 0.25
-        self.watercolor = 'DodgerBlue2'
+        self.watercolor = 'blue'
         self.stonecolor = 'gray40'
         self.simulator = s.Simulation()
         self.line_startx = 0
@@ -31,7 +31,7 @@ class GUI(tk.Frame):
         self.line_width = 15 // self.pixel_size
 
         self.root = root
-        self.root.title("Super awesome animatie")
+        self.root.title("Convection-diffusion water flow simulation")
 
         # Button panel frame stuff
         self.frame_width, self.frame_height = 600, 100
@@ -53,6 +53,10 @@ class GUI(tk.Frame):
         self.line_button = tk.Button(self.frame, text='Line')
         self.line_button.pack(side='left', padx=10)
         self.line_button.bind('<Button-1>', self.line_button_click)
+        tk.Label(self.frame, text="% Water:", bg='grey').pack(side=tk.LEFT)
+        self.water_input = tk.Entry(self.frame, width=10)
+        self.water_input.pack(padx=10, side='left')
+        self.water_input.insert(0, str(self.animation_speed))
 
         self.start_button = tk.Button(self.frame, text='Start simulation')
         self.start_button.pack(side='left', padx=50)
@@ -163,10 +167,11 @@ class GUI(tk.Frame):
         print("Water modus")
         self.modelabeltext = 'Water'
         self.modelabel.configure(text='Water')
-        self.mode = .1
+        self.mode = 1
 
     def line_button_click(self, event):
         print("Press for first point of line")
+        self.modelabel.configure(text='Line')
         self.mode = 3
 
     def stone_button_click(self, event):
@@ -284,6 +289,13 @@ class GUI(tk.Frame):
             #self.minimizestart()
             #self.drawline()
             self.draw_stone_line()
+        elif self.mode == 1:
+            val = int(self.water_input.get())
+            if val < 0:
+                val = 0
+            elif val > 100:
+                val = 100
+            self.draw_element(grid_x, grid_y, val/100)
         else:
             self.draw_element(grid_x, grid_y, self.mode)
 
@@ -386,7 +398,6 @@ class GUI(tk.Frame):
         while y % self.pixel_size != 0:
             y -= 1
         return x, y
-
 
 
 if __name__ == "__main__":
