@@ -13,6 +13,7 @@ class GUI(tk.Frame):
         self.frame_width, self.frame_height = 600, 100
         self.mode = 0
         self.simulate = False
+        self.simulation_parameters = None
         self.animation_speed = 0.25
         self.watercolor = 'blue'
         self.stonecolor = 'gray40'
@@ -37,53 +38,57 @@ class GUI(tk.Frame):
 
         # Button panel frame stuff
         self.frame_width, self.frame_height = 600, 100
-        self.frame = tk.Frame(self.root, bg='grey')
+        self.frame = tk.Frame(self.root)
         self.frame.pack(fill='x')
-        tk.Label(self.frame, text="Draw mode:", bg='grey').pack(side='left')
+        tk.Label(self.frame, text="Draw mode:").pack(side='left')
         self.modelabeltext = 'Delete'
-        self.modelabel = tk.Label(self.frame, bg='grey', text=self.modelabeltext, width=10)
+        self.modelabel = tk.Label(self.frame, text=self.modelabeltext, width=7)
         self.modelabel.pack(side='left')
         self.air_button = tk.Button(self.frame, text='Delete')
-        self.air_button.pack(side='left', padx=10)
+        self.air_button.pack(side='left', padx=2)
         self.air_button.bind('<Button-1>', self.delete_button_click)
         self.water_button = tk.Button(self.frame, text='Water')
-        self.water_button.pack(side='left', padx=10)
+        self.water_button.pack(side='left', padx=2)
         self.water_button.bind('<Button-1>', self.water_button_click)
         self.stone_button = tk.Button(self.frame, text='Stone')
-        self.stone_button.pack(side='left', padx=10)
+        self.stone_button.pack(side='left', padx=2)
         self.stone_button.bind('<Button-1>', self.stone_button_click)
         self.line_button = tk.Button(self.frame, text='Line')
-        self.line_button.pack(side='left', padx=10)
+        self.line_button.pack(side='left', padx=2)
         self.line_button.bind('<Button-1>', self.line_button_click)
-        tk.Label(self.frame, text="% Water:", bg='grey').pack(side=tk.LEFT)
-        self.water_input = tk.Entry(self.frame, width=10)
+        tk.Label(self.frame, text="% Water:").pack(side=tk.LEFT)
+        self.water_input = tk.Entry(self.frame, width=4)
         self.water_input.pack(padx=10, side='left')
         self.water_input.insert(0, '100')
 
         self.start_button = tk.Button(self.frame, text='Start simulation')
-        self.start_button.pack(side='left', padx=50)
+        self.start_button.pack(side='left', padx=6)
         self.start_button.bind('<Button-1>', self.start_button_click)
 
         self.stop_button = tk.Button(self.frame, text='Stop simulation')
-        self.stop_button.pack(side='left', padx=10)
+        self.stop_button.pack(side='left', padx=4)
         self.stop_button.bind('<Button-1>', self.stop_button_click)
 
         self.frame2 = tk.Frame(self.root)
         self.frame2.pack(fill='x')
 
         tk.Label(self.frame2, text="Animation speed:").pack(side=tk.LEFT)
-        self.speed_input = tk.Entry(self.frame2, width=10)
-        self.speed_input.pack(padx=10, side='left')
+        self.speed_input = tk.Entry(self.frame2, width=5)
+        self.speed_input.pack(padx=3, side='left')
         self.speed_input.insert(0, str(self.animation_speed))
 
-        tk.Label(self.frame2, text="Gravitation:").pack(side='left')
-        self.gravitation = tk.Entry(self.frame2, width=10)
-        self.gravitation.pack(padx=10, side='left')
-        self.gravitation.insert(0, "0")
+        tk.Label(self.frame2, text="Time step size:").pack(side=tk.LEFT)
+        self.step_input = tk.Entry(self.frame2, width=5)
+        self.step_input.pack(padx=3, side='left')
+        self.step_input.insert(0, '10')
 
-        tk.Label(self.frame2, text="Formula:", bg='lightgrey').pack(side='left')
+        tk.Label(self.frame2, text="Gravitation:").pack(side='left')
+        self.gravitation = tk.Entry(self.frame2, width=5)
+        self.gravitation.pack(padx=3, side='left')
+        self.gravitation.insert(0, "5")
+
         self.formulalabeltext = "Convection-Diffusion"
-        self.formulalabel = tk.Label(self.frame2, bg='lightgrey', text=self.formulalabeltext, width=17)
+        self.formulalabel = tk.Label(self.frame2, text=self.formulalabeltext, width=17)
         self.formulalabel.pack(side='left')
         self.formula_button = tk.Button(self.frame2, text='Formula')
         self.formula_button.pack(side='left', padx=10)
@@ -181,7 +186,8 @@ class GUI(tk.Frame):
         self.animation_speed = self.speed_input.get()
         print("Animation speed = " + str(self.animation_speed))
         self.board = b.Board(self.rectangles, self.w, self.canvas_width, self.canvas_height, self.pixel_size)
-        self.simulator.simulate(board=self.board, formula=self.formulalabel, stones=self.board.stones)
+        self.simulation_parameters = [self.speed_input.get(), self.step_input.get(), self.gravitation.get()]
+        self.simulator.simulate(board=self.board, formula=self.formulalabel, stones=self.board.stones, parameters=self.simulation_parameters)
         return True
 
     def stop_button_click(self, event):
@@ -431,7 +437,7 @@ class GUI(tk.Frame):
 
 
 if __name__ == "__main__":
-    x_pixels = 100
+    x_pixels = 150
     root = tk.Tk()
     gui = GUI(root, x_pixels)
     root = gui.get_root()
