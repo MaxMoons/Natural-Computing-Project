@@ -320,8 +320,6 @@ class GUI(tk.Frame):
     def can_draw(self, p):
         for r in self.rectangles:
             if p[0] == r[1] and p[1] == r[2]:
-                print("cant draw :(")
-                print(p[0], r[1], p[1], r[2])
                 return False
         return True
 
@@ -375,7 +373,7 @@ class GUI(tk.Frame):
                 x_step = -1
         else:
             x_step = (self.line_endx - self.line_startx) / abs(self.line_starty - self.line_endy)
-            if self.line_starty < self.line_endy:
+            if self.line_starty > self.line_endy:
                 y_step = -1
         return x_step, y_step
 
