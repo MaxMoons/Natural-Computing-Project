@@ -386,13 +386,16 @@ class GUI(tk.Frame):
         return line
 
     def widen_grid(self, xcoord, ycoord, val):
-        x_space = np.linspace(xcoord-(self.grid_width//2)*self.pixel_size, xcoord+(self.grid_width//2)*self.pixel_size, self.grid_width + 1)
-        y_space = np.linspace(ycoord-(self.grid_width//2)*self.pixel_size, ycoord+(self.grid_width//2)*self.pixel_size, self.grid_width + 1)
+        x_space = np.linspace(xcoord-(self.grid_width//2)*self.pixel_size, xcoord+(self.grid_width//2)*self.pixel_size, self.grid_width)
+        y_space = np.linspace(ycoord-(self.grid_width//2)*self.pixel_size, ycoord+(self.grid_width//2)*self.pixel_size, self.grid_width)
+        print(xcoord, ycoord)
+        print(x_space)
+        print(y_space)
         for x in x_space:
             for y in y_space:
                 print("drawing at x, y: " + str(x) + " " + str(y))
                 #print("drawing at x, y: " + str(int(x)) + " " + str(int(y)))
-                self.draw_element(x,y,val)
+                self.draw_element(int(x),int(y),val)
     
     def get_line_pixels(self, x1, y1, x2, y2, x_step, y_step):
         pixels = []
