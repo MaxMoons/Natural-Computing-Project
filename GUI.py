@@ -250,6 +250,7 @@ class GUI(tk.Frame):
     def redraw_board(self, b):
         # Delete all non-stone (water) tiles, i.e. assume all water tiles change position/value
         self.w.delete("all")
+        self.rectangles = []
         self.create_grid()
 
         temp_board = copy.deepcopy(b)
