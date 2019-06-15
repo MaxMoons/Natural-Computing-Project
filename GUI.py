@@ -2,7 +2,11 @@ import tkinter as tk
 from PIL import Image, ImageTk
 import numpy as np
 import Board as b
+import time
 import Simulation as s
+import copy
+
+simulating = False
 
 
 class GUI(tk.Frame):
@@ -12,18 +16,17 @@ class GUI(tk.Frame):
         self.canvas_width, self.canvas_height = 600, 500
         self.frame_width, self.frame_height = 600, 100
         self.mode = 0
-        self.simulate = False
         self.simulation_parameters = None
         self.animation_speed = 0.25
         self.watercolor = 'blue'
         self.stonecolor = 'gray40'
-        self.simulator = s.Simulation()
         self.line_startx = 0
         self.line_starty = 0
         self.line_endx = 0
         self.line_endy = 0
         self.gradient = 0
         self.stop_animation = True
+        self.simulator = None
 
         # Amount of x and y pixels; y follows from height and pixel size as pixels are square
         self.x_pixels = n_pixels
@@ -73,17 +76,17 @@ class GUI(tk.Frame):
         tk.Label(self.frame2, text="Animation speed:").pack(side=tk.LEFT)
         self.speed_input = tk.Entry(self.frame2, width=5)
         self.speed_input.pack(padx=3, side='left')
-        self.speed_input.insert(0, str(self.animation_speed))
+        self.speed_input.insert(0, '1000')
 
         tk.Label(self.frame2, text="Time step size:").pack(side=tk.LEFT)
         self.step_input = tk.Entry(self.frame2, width=5)
         self.step_input.pack(padx=3, side='left')
-        self.step_input.insert(0, '10')
+        self.step_input.insert(0, '0.01')
 
         tk.Label(self.frame2, text="Gravitation:").pack(side='left')
         self.gravitation = tk.Entry(self.frame2, width=5)
         self.gravitation.pack(padx=3, side='left')
-        self.gravitation.insert(0, "5")
+        self.gravitation.insert(0, '9.81')
 
         self.formulalabeltext = "Convection-Diffusion"
         self.formulalabel = tk.Label(self.frame2, text=self.formulalabeltext, width=17)
@@ -103,17 +106,17 @@ class GUI(tk.Frame):
         # One element = (rectangle, x1, y1)
         self.rectangles = []
         self.new_tuples = []
-        self.board = None
+        self.board = b.Board(self.canvas_width, self.canvas_height, self.pixel_size)
         self.create_grid()
 
     def get_root(self):
         return self.root
 
     '''
-	Deze functie heb ik van internet gehaald om een grid te tekenen
-	Mijn idee was om deze functie te vervangen door draw_grid waarbij er alleen maar rectangles ipv lijnen getekend worden
-	Hiermee krijg je wel een mooi idee over hoe er in het canvas getekend kan worden
-	'''
+    Deze functie heb ik van internet gehaald om een grid te tekenen
+    Mijn idee was om deze functie te vervangen door draw_grid waarbij er alleen maar rectangles ipv lijnen getekend worden
+    Hiermee krijg je wel een mooi idee over hoe er in het canvas getekend kan worden
+    '''
     def create_grid(self):
         # vertical lines at an interval of "line_distance" pixel
         for x in range(0, self.canvas_width, self.pixel_size):
@@ -131,11 +134,13 @@ class GUI(tk.Frame):
         if val == -1:
             r = self.w.create_rectangle(x, y, x2, y2, fill=self.stonecolor, outline=self.stonecolor)
             self.rectangles.append((r, x, y))
+            self.board.set_value(x//self.pixel_size, y//self.pixel_size, val)
 
         # 100% water
         elif val == 1:
             r = self.w.create_rectangle(x, y, x2, y2, fill=self.watercolor, outline=self.watercolor)
             self.rectangles.append((r, x, y))
+            self.board.set_value(x//self.pixel_size, y//self.pixel_size, val)
 
         # <100% water; adds transparency
         elif 0 < val < 1:
@@ -149,15 +154,16 @@ class GUI(tk.Frame):
                     self.w.create_image(x1, y1, image=img, anchor='nw')
                     self.rectangles.append((img, x, y))
             create_rectangle(x, y, x2, y2, fill='blue', alpha=val, outline="")
+            self.board.set_value(x//self.pixel_size, y//self.pixel_size, val)
 
         # Nothing; val = 0, so remove that rectangle
         else:
             for r in self.rectangles:
                 if r[1] == x and r[2] == y:
                     print("Rectangle found!")
+                    self.board.set_value(x//self.pixel_size, y//self.pixel_size, 0)
                     self.w.delete(r[0])
                     self.rectangles.remove(r)
-
 
     '''
     For all water rectangles in the list of tuples of the current board, add 1 to the height of the water
@@ -189,17 +195,23 @@ class GUI(tk.Frame):
         self.stop_animation = False
         self.animation_speed = self.speed_input.get()
         print("Animation speed = " + str(self.animation_speed))
-        self.board = b.Board(self.rectangles, self.w, self.canvas_width, self.canvas_height, self.pixel_size)
         self.simulation_parameters = [self.speed_input.get(), self.step_input.get(), self.gravitation.get()]
-        self.simulator.simulate(board=self.board, formula=self.formulalabel, stones=self.board.stones, parameters=self.simulation_parameters)
+        stone_count = self.board.get_stone_amount()
+        print(stone_count)
+        self.simulator = s.Simulation(formula=self.formulalabel, stones=stone_count, parameters=self.simulation_parameters)
+
+        global simulating
+        simulating = True
         return True
 
-    def stop_button_click(self, event):
+    @staticmethod
+    def stop_button_click(event):
         print("Stop simulation")
+        global simulating
+        simulating = False
         # Used in simulation to stop an otherwise indefinitely running simulation
         # This value is returned from redraw board, which is called after every animation step, to notify simulation
         # of whether it should continue simulating or not
-        self.stop_animation = True
 
     def formula_button_click(self, event):
         if self.formulalabeltext == "Convection-Diffusion":
@@ -208,6 +220,17 @@ class GUI(tk.Frame):
             self.formulalabeltext = "Convection-Diffusion"
         self.formulalabel.configure(text=self.formulalabeltext)
         return True
+
+    def scanning(self):
+        iteration = 0
+        if simulating and self.simulator is not None:
+            print("Iteration: " + str(iteration))
+            b = self.simulator.simulate(board=self.board)
+            self.redraw_board(b)
+            iteration += 1
+            time.sleep(int(self.speed_input.get())/1000)
+        print(self.speed_input.get())
+        self.root.after(int(self.speed_input.get()), self.scanning)
 
     '''
     Draw the entire grid based on the numbers stored in coords
@@ -308,18 +331,17 @@ class GUI(tk.Frame):
     # This function is called from simulation; it is used to draw the entire representation of the board after 1 iteration
     def redraw_board(self, b):
         # Delete all non-stone (water) tiles, i.e. assume all water tiles change position/value
-        for r in self.rectangles:
-            if self.w.itemcget(r[0], "fill") != self.stonecolor:
-                self.w.delete(r[0])
-                self.rectangles.remove(r)
+        self.w.delete("all")
+        self.create_grid()
+
+        temp_board = copy.deepcopy(b)
 
         # Draw new water tiles that were given by the representation
         # I.e. > 0 means it's water
         for y in range(self.canvas_height // self.pixel_size):
             for x in range(self.canvas_width // self.pixel_size):
-                val = b.get_value(x, y)
-                if val > 0:
-                    self.draw_element(x, y, val)
+                val = temp_board.get_value(x, y)
+                self.draw_element(x*self.pixel_size+self.pixel_size, y*self.pixel_size+self.pixel_size, val)
         # Return stop_animation to notify Simulation of whether it should continue to simulate or not
         return self.stop_animation
 
@@ -411,4 +433,5 @@ if __name__ == "__main__":
     root = tk.Tk()
     gui = GUI(root, x_pixels)
     root = gui.get_root()
+    root.after(1000, gui.scanning)
     root.mainloop()

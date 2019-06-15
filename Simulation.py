@@ -5,11 +5,14 @@ import Board as b
 
 
 class Simulation():
-    def __init__(self):
+    def __init__(self, formula, stones, parameters):
         self.matrices = self.createMatrices()
+        self.formula = formula
+        self.stones = stones
+        self.parameters = parameters
 
     # NB Stones is aantal stenen in grid
-    def simulate(self, board, formula, stones, parameters):
+    def simulate(self, board):
         return board
 
     def createMatrices(self):

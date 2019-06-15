@@ -3,10 +3,10 @@ import numpy as np
 
 
 class Board:
-    def __init__(self, rectangles, canvas, canvas_width, canvas_height, pixel_size):
+    def __init__(self, canvas_width, canvas_height, pixel_size):
         # Coordinate grid for drawing stuff; first index is y (vertical), second is x (horizontal)
         self.board = np.zeros((canvas_height//pixel_size, canvas_width//pixel_size), dtype=float)
-        self.stones = self.set_initial_values(canvas, rectangles, pixel_size)
+        #self.stones = self.set_initial_values(canvas, rectangles, pixel_size)
 
     # 0 = nothing
     # 0-1 = water (i.e. 1 = 100% concentration)
@@ -16,7 +16,15 @@ class Board:
 
     # Return the value of a particle in the grid
     def get_value(self, x, y):
-        return self.board[y][x][0]
+        return self.board[y][x]
+
+    def get_stone_amount(self):
+        count = 0
+        for r in self.board:
+            for c in r:
+                if c == -1:
+                    count += 1
+        return count
 
     '''
     Copy the rectangles drawn before the simulation to the board as x,y values   
