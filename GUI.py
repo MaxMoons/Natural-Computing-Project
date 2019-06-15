@@ -13,6 +13,7 @@ class GUI(tk.Frame):
         self.frame_width, self.frame_height = 600, 100
         self.mode = 0
         self.simulate = False
+        self.simulation_parameters = None
         self.animation_speed = 0.25
         self.watercolor = 'blue'
         self.stonecolor = 'gray40'
@@ -189,7 +190,8 @@ class GUI(tk.Frame):
         self.animation_speed = self.speed_input.get()
         print("Animation speed = " + str(self.animation_speed))
         self.board = b.Board(self.rectangles, self.w, self.canvas_width, self.canvas_height, self.pixel_size)
-        self.simulator.simulate(board=self.board, formula=self.formulalabel, stones=self.board.stones)
+        self.simulation_parameters = [self.speed_input.get(), self.step_input.get(), self.gravitation.get()]
+        self.simulator.simulate(board=self.board, formula=self.formulalabel, stones=self.board.stones, parameters=self.simulation_parameters)
         return True
 
     def stop_button_click(self, event):

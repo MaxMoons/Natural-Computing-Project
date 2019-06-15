@@ -9,7 +9,7 @@ class Simulation():
         self.matrices = self.createMatrices()
 
     # NB Stones is aantal stenen in grid
-    def simulate(self, board, formula, stones):
+    def simulate(self, board, formula, stones, parameters):
         return board
 
     def createMatrices(self):
