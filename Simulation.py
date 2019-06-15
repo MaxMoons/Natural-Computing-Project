@@ -5,6 +5,7 @@ import Board as b
 
 class Simulation():
     def __init__(self, formula, stones, parameters):
+
         self.formula = formula
         self.stones = stones
         assert len(parameters)==3, "Wrong parameters given"
@@ -102,44 +103,3 @@ class Simulation():
                     new_area[i+size_y//2][j+size_x//2] += (kernel[size_y//2][size_x//2]+nr*kernel[0][1])*pad_area[i+size_y//2][j+size_x//2]
                 
         return new_area
-            
-            
-            
-            
-            
-            
-            
-            
-            
-            
-            
-            
-            
-            
-            
-            
-            
-            
-            
-            
-            
-            
-            
-            
-            
-            
-            
-            
-            
-            
-            
-            
-            
-            
-            
-            
-            
-            
-            
-            
-            
