@@ -56,7 +56,7 @@ class GUI(tk.Frame):
         tk.Label(self.frame, text="% Water:", bg='grey').pack(side=tk.LEFT)
         self.water_input = tk.Entry(self.frame, width=10)
         self.water_input.pack(padx=10, side='left')
-        self.water_input.insert(0, str(self.animation_speed))
+        self.water_input.insert(0, '100')
 
         self.start_button = tk.Button(self.frame, text='Start simulation')
         self.start_button.pack(side='left', padx=50)
