@@ -29,6 +29,8 @@ class GUI(tk.Frame):
         self.pixel_size = self.canvas_width // n_pixels
         self.y_pixels = self.canvas_height // self.pixel_size
         self.line_width = 15 // self.pixel_size
+        self.delete_width = 15 // self.pixel_size
+        self.draw_width = 15 // self.pixel_size
 
         self.root = root
         self.root.title("Convection-diffusion water flow simulation")
@@ -124,13 +126,11 @@ class GUI(tk.Frame):
 
         # Stone
         if val == -1:
-            r = self.w.create_rectangle(x, y, x2, y2, fill=self.stonecolor, outline=self.stonecolor)
-            self.rectangles.append((r, x, y))
+            self.draw_grid(x, y, val)
 
         # 100% water
         elif val == 1:
-            r = self.w.create_rectangle(x, y, x2, y2, fill=self.watercolor, outline=self.watercolor)
-            self.rectangles.append((r, x, y))
+            self.draw_grid(x, y, val)
 
         # <100% water; adds transparency
         elif 0 < val < 1:
@@ -147,11 +147,7 @@ class GUI(tk.Frame):
 
         # Nothing; val = 0, so remove that rectangle
         else:
-            for r in self.rectangles:
-                if r[1] == x and r[2] == y:
-                    print("Rectangle found!")
-                    self.w.delete(r[0])
-                    self.rectangles.remove(r)
+            self.delete_grid(x,y)
 
 
     '''
@@ -342,6 +338,7 @@ class GUI(tk.Frame):
         for p in line:
             x_space = np.linspace(p[0]-(self.line_width//2)*self.pixel_size, p[0]+(self.line_width//2)*self.pixel_size, self.line_width)
             y_space = np.linspace(p[1]-(self.line_width//2)*self.pixel_size, p[1]+(self.line_width//2)*self.pixel_size, self.line_width)
+            print("x_space, y_space: " + str(x_space) + ", " + str(y_space))
             for x in x_space:
                 for y in y_space:
                     if self.canvas_width-self.pixel_size >= x >= 0 and self.canvas_height-self.pixel_size >= y >= 0:
@@ -351,6 +348,39 @@ class GUI(tk.Frame):
         for c in candidates:
             line.append(c)
         return line
+
+    def delete_grid(self, xcoord, ycoord):
+        x_space = np.linspace(xcoord-(self.delete_width//2)*self.pixel_size, xcoord+(self.delete_width//2)*self.pixel_size, self.delete_width + 1)
+        y_space = np.linspace(ycoord-(self.delete_width//2)*self.pixel_size, ycoord+(self.delete_width//2)*self.pixel_size, self.delete_width + 1)
+        print("x_space, y_space: " + str(x_space) + ", " + str(y_space))
+        for x in x_space:
+            for y in y_space:
+                for r in self.rectangles:
+                    if r[1] == x and r[2] == y:
+                        print("delete at x, y: " + str(x) + " " + str(y))
+                        self.w.delete(r[0])
+                        self.rectangles.remove(r)
+
+    def draw_grid(self, x, y, val):
+        x2 = x + self.pixel_size
+        y2 = y + self.pixel_size
+        x_space = np.linspace(x-(self.draw_width//2)*self.pixel_size, x+(self.draw_width//2)*self.pixel_size, self.draw_width + 1)
+        y_space = np.linspace(y-(self.draw_width//2)*self.pixel_size, y+(self.draw_width//2)*self.pixel_size, self.draw_width + 1)
+        
+        # draw stone
+        if val == -1:
+            for x in x_space:
+                for y in y_space:
+                    r = self.w.create_rectangle(x, y, x2, y2, fill=self.stonecolor, outline= self.stonecolor)
+                    self.rectangles.append((r, x, y))        # draw stone
+    
+        # draw water
+        if val == 1:
+            for x in x_space:
+                for y in y_space:
+                    r = self.w.create_rectangle(x, y, x2, y2, fill=self.watercolor, outline= self.watercolor)
+                    self.rectangles.append((r, x, y))
+
 
     def get_line_pixels(self, x1, y1, x2, y2, x_step, y_step):
         pixels = []
