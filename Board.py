@@ -28,11 +28,11 @@ class Board:
             coords = canvas.coords(r)
             # Color = water;
             if canvas.itemcget(r, "fill") == 'DodgerBlue2':
-                self.set_value(int(coords[0]//pixel_size), int(coords[1]//pixel_size), 1.0)
+                self.set_value(r[1]//pixel_size, r[2]//pixel_size, 1.0)
             # Or stone;
             else:
                 stones += 1
-                self.set_value(int(coords[0]//pixel_size), int(coords[1]//pixel_size), -1.0)
+                self.set_value(int(r[1]//pixel_size), int(r[2]//pixel_size), -1.0)
         return stones
 
     def get_board(self):
