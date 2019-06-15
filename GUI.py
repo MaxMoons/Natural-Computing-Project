@@ -1,5 +1,6 @@
 import tkinter as tk
 from PIL import Image, ImageTk
+import numpy as np
 import Board as b
 import Simulation as s
 
@@ -27,6 +28,7 @@ class GUI(tk.Frame):
         self.x_pixels = n_pixels
         self.pixel_size = self.canvas_width // n_pixels
         self.y_pixels = self.canvas_height // self.pixel_size
+        self.line_width = 15 // self.pixel_size
 
         self.root = root
         self.root.title("Super awesome animatie")
@@ -88,6 +90,8 @@ class GUI(tk.Frame):
         self.w.bind("<Button-1>", self.leftclick)
         self.w.pack()
         self.initial_board = []
+
+        # One element = (rectangle, x1, y1)
         self.rectangles = []
         self.new_tuples = []
         self.board = None
@@ -135,7 +139,6 @@ class GUI(tk.Frame):
                     img = ImageTk.PhotoImage(image)
                     self.w.create_image(x1, y1, image=img, anchor='nw')
                     self.rectangles.append((img, x, y))
-                #self.w.create_rectangle(x1, y1, x2, y2, **kwargs)
             create_rectangle(x, y, x2, y2, fill='blue', alpha=val, outline="")
 
         # Nothing; val = 0, so remove that rectangle
@@ -203,7 +206,7 @@ class GUI(tk.Frame):
     getallen opnieuw getekend worden (e.g. coordinatenstelsel van vorige iteratie meegeven en kijken of getal hetzelfde is?)
     '''
     # Set the start and end values of x and y to always catch the whole grid points that are clicked in.
-    def set_coords_to_grid(self,gradient):
+    def set_coords_to_grid(self, gradient):
         if gradient > 0:
             for i in range(self.pixel_size):
                 if (self.line_startx - i) % self.pixel_size == 0:
@@ -271,17 +274,16 @@ class GUI(tk.Frame):
                 grid_y = y0 - j
         # If draw line modus is on:
         if self.mode == 3:
-            self.line_startx = x0
-            self.line_starty = y0
+            self.line_startx, self.line_starty = self.identify_pixel(x0, y0)
             self.mode = 4
         elif self.mode == 4:
-            self.line_endx = x0
-            self.line_endy = y0
+            self.line_endx, self.line_endy = self.identify_pixel(x0, y0)
             self.mode = 3
             print("start x, y: " + str(self.line_startx) + " " + str(self.line_starty)) 
             print("end x, y: " + str(self.line_endx) + " " + str(self.line_endy)) 
-            self.minimizestart()
-            self.drawline()
+            #self.minimizestart()
+            #self.drawline()
+            self.draw_stone_line()
         else:
             self.draw_element(grid_x, grid_y, self.mode)
 
@@ -289,12 +291,12 @@ class GUI(tk.Frame):
     def redraw_board(self, b):
         # Delete all non-stone (water) tiles, i.e. assume all water tiles change position/value
         for r in self.rectangles:
-            if self.w.itemcget(r, "fill") != self.stonecolor:
-                self.w.delete(r)
+            if self.w.itemcget(r[0], "fill") != self.stonecolor:
+                self.w.delete(r[0])
                 self.rectangles.remove(r)
 
         # Draw new water tiles that were given by the representation
-        # I.e. > 0 means it's not stone or air
+        # I.e. > 0 means it's water
         for y in range(self.canvas_height // self.pixel_size):
             for x in range(self.canvas_width // self.pixel_size):
                 val = b.get_value(x, y)
@@ -303,9 +305,94 @@ class GUI(tk.Frame):
         # Return stop_animation to notify Simulation of whether it should continue to simulate or not
         return self.stop_animation
 
+    def draw_stone_line(self):
+        x_step, y_step = self.get_steps()
+        print(x_step, y_step)
+        line = self.get_line_pixels(self.line_startx, self.line_starty, self.line_endx, self.line_endy, x_step, y_step)
+        line = self.widen_line(line)
+        for p in line:
+            if not self.can_draw(p):
+                line.remove(p)
+        for p in line:
+            self.draw_element(p[0], p[1], -1)
+
+    # Is this pixel already drawn?
+    def can_draw(self, p):
+        for r in self.rectangles:
+            if p[0] == r[1] and p[1] == r[2]:
+                print("cant draw :(")
+                print(p[0], r[1], p[1], r[2])
+                return False
+        return True
+
+    # Make sure the line is as wide as self.line_width dictates
+    # Ensures the line is of a certain width in case the pixel_size is very small
+    def widen_line(self, line):
+        candidates = []
+        for p in line:
+            x_space = np.linspace(p[0]-(self.line_width//2)*self.pixel_size, p[0]+(self.line_width//2)*self.pixel_size, self.line_width)
+            y_space = np.linspace(p[1]-(self.line_width//2)*self.pixel_size, p[1]+(self.line_width//2)*self.pixel_size, self.line_width)
+            for x in x_space:
+                for y in y_space:
+                    if self.canvas_width-self.pixel_size >= x >= 0 and self.canvas_height-self.pixel_size >= y >= 0:
+                        candidate = x, y
+                        if candidate not in line and candidate not in candidates:
+                            candidates.append(candidate)
+        for c in candidates:
+            line.append(c)
+        return line
+
+    def get_line_pixels(self, x1, y1, x2, y2, x_step, y_step):
+        pixels = []
+        # Set coords to pixel center rather than top-left corner
+        x1 += self.pixel_size / 2
+        y1 += self.pixel_size / 2
+        x2 += self.pixel_size / 2
+        y2 += self.pixel_size / 2
+        if abs(x_step) == 1:
+            while x1 != x2:
+                pixel = self.identify_pixel(x1, y1)
+                if pixel not in pixels:
+                    pixels.append(pixel)
+                x1 += x_step
+                y1 += y_step
+        else:
+            while y1 != y2:
+                pixel = self.identify_pixel(x1, y1)
+                if pixel not in pixels:
+                    pixels.append(pixel)
+                x1 += x_step
+                y1 += y_step
+        return pixels
+
+    # Identify the step sizes for finding the pixels within a drawn line
+    # Return the 1-step as first argument, the other as second
+    def get_steps(self):
+        x_step, y_step = 1, 1
+        if abs(self.line_startx-self.line_endx) >= abs(self.line_starty - self.line_endy):
+            y_step = (self.line_endy - self.line_starty) / abs(self.line_startx - self.line_endx)
+            if self.line_endx < self.line_startx:
+                x_step = -1
+        else:
+            x_step = (self.line_endx - self.line_startx) / abs(self.line_starty - self.line_endy)
+            if self.line_starty < self.line_endy:
+                y_step = -1
+        return x_step, y_step
+
+    # Given an x and y coordinate, in which pixel am I?
+    # i.e. get top-left corner of current pixel
+    def identify_pixel(self, x, y):
+        x, y = int(x), int(y)
+        while x % self.pixel_size != 0:
+            x -= 1
+        while y % self.pixel_size != 0:
+            y -= 1
+        return x, y
+
+
 
 if __name__ == "__main__":
-    x_pixels = 50
+    x_pixels = 100
     root = tk.Tk()
     gui = GUI(root, x_pixels)
     root = gui.get_root()
