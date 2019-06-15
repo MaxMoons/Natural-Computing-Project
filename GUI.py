@@ -214,9 +214,8 @@ class GUI(tk.Frame):
         global simulating
         simulating = False
         # Used in simulation to stop an otherwise indefinitely running simulation
-        # This value is returned from redraw board, which is called after every animation step, to notify simulation
-        # of whether it should continue simulating or not
 
+    # Old formula button for the ambition to implement the navier-stokes equation as well
     def formula_button_click(self, event):
         if self.formulalabeltext == "Convection-Diffusion":
             self.formulalabeltext = "Navier–Stokes"
@@ -225,6 +224,7 @@ class GUI(tk.Frame):
         self.formulalabel.configure(text=self.formulalabeltext)
         return True
 
+    # Used to run on a seperate thread so the simulation can be stopped while it is running
     def scanning(self):
         iteration = 0
         if simulating and self.simulator is not None:
@@ -235,66 +235,6 @@ class GUI(tk.Frame):
             time.sleep(int(self.speed_input.get())/1000)
         print(self.speed_input.get())
         self.root.after(int(self.speed_input.get()), self.scanning)
-
-    '''
-    Draw the entire grid based on the numbers stored in coords
-    Gebruik draw_particle om iedere coordinaat te tekenen
-    
-    Het hele grid steeds opnieuw tekenen kan wat omslachtig zijn; misschien iets bedenken waarbij alleen de veranderde
-    getallen opnieuw getekend worden (e.g. coordinatenstelsel van vorige iteratie meegeven en kijken of getal hetzelfde is?)
-    '''
-    # Set the start and end values of x and y to always catch the whole grid points that are clicked in.
-    def set_coords_to_grid(self, gradient):
-        if gradient > 0:
-            for i in range(self.pixel_size):
-                if (self.line_startx - i) % self.pixel_size == 0:
-                    self.line_startx = self.line_startx - i
-                if (self.line_endx - i) % self.pixel_size == 0:
-                    self.line_endx = self.line_endx - i + self.pixel_size
-                if (self.line_starty - i) % self.pixel_size == 0:
-                    self.line_starty = self.line_starty - i
-                if (self.line_endy - i) % self.pixel_size == 0:
-                    self.line_endy = self.line_endy - i + self.pixel_size
-
-    def drawline(self):
-        #self.w.create_line( self.line_startx, self.line_starty, self.line_endx, self.line_endy)
-        self.mode = 2
-        xdifference = self.line_endx - self.line_startx
-        ydifference = self.line_endy - self.line_starty
-        self.gradient = ydifference/xdifference
-        self.set_coords_to_grid(self.gradient)
-        xdifference = self.line_endx - self.line_startx
-        ydifference = self.line_endy - self.line_starty
-        self.gradient = ydifference/xdifference
-        print("xdifference = " + str(xdifference))
-        if (self.gradient < 1 and self.gradient > 0) or (self.gradient > -1 and self.gradient < 0):
-            for step in range(int(abs(xdifference))):
-                if step%self.pixel_size == 0:
-                    self.draw_element(self.line_startx+step,self.line_starty+self.gradient*step, -1)
-        else:
-            self.gradient = xdifference/ydifference
-            print("start x, y: " + str(self.line_startx) + " " + str(self.line_starty)) 
-            print("end x, y: " + str(self.line_endx) + " " + str(self.line_endy)) 
-            for step in range(int(abs(ydifference))):
-                if step%self.pixel_size == 0:
-                    self.draw_element(self.line_startx+step*self.gradient, self.line_starty+step, -1)
-        self.mode = 3
-
-    """
-    Deze functie verandert het beginpunt van de lijn als het nodig is. Er wordt namelijk altijd van links naar rechts getekend in drawline().
-    """
-    def minimizestart(self):
-        temporaryx = 0
-        temporaryy = 0
-        if(self.line_startx > self.line_endx):
-            temporaryx = self.line_startx
-            self.line_startx = self.line_endx
-            self.line_endx = temporaryx
-            temporaryy = self.line_starty
-            self.line_starty = self.line_endy
-            self.line_endy = temporaryy
-        print("start x,  y: " + str(self.line_startx) + ", " + str(self.line_starty))
-        print("end x,  y: " + str(self.line_endx) + ", " + str(self.line_endy))
 
     def leftclick(self, eventorigin):
         global x0, y0
@@ -317,8 +257,6 @@ class GUI(tk.Frame):
         elif self.mode == 4:
             self.line_endx, self.line_endy = self.identify_pixel(x0, y0)
             self.mode = 3
-            print("start x, y: " + str(self.line_startx) + " " + str(self.line_starty)) 
-            print("end x, y: " + str(self.line_endx) + " " + str(self.line_endy)) 
             #self.minimizestart()
             #self.drawline()
             self.draw_stone_line()
@@ -345,10 +283,11 @@ class GUI(tk.Frame):
         for y in range(self.canvas_height // self.pixel_size):
             for x in range(self.canvas_width // self.pixel_size):
                 val = temp_board.get_value(x, y)
-                self.draw_element(x*self.pixel_size+self.pixel_size, y*self.pixel_size+self.pixel_size, val)
+                self.draw_element(x*self.pixel_size, y*self.pixel_size, val)
         # Return stop_animation to notify Simulation of whether it should continue to simulate or not
         return self.stop_animation
 
+    # Used to draw a line of stone after the coordinates of the start and end point have been clicked
     def draw_stone_line(self):
         x_step, y_step = self.get_steps()
         print(x_step, y_step)
@@ -385,6 +324,7 @@ class GUI(tk.Frame):
             line.append(c)
         return line
 
+    # Widen the grid of where to draw such that a fixed amount of pixels is drawn rather than 1
     def widen_grid(self, xcoord, ycoord, val):
         x_space = np.linspace(xcoord-(self.grid_width//2)*self.pixel_size, xcoord+(self.grid_width//2)*self.pixel_size, self.grid_width)
         y_space = np.linspace(ycoord-(self.grid_width//2)*self.pixel_size, ycoord+(self.grid_width//2)*self.pixel_size, self.grid_width)
