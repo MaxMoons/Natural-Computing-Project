@@ -33,6 +33,10 @@ class GUI(tk.Frame):
         self.pixel_size = self.canvas_width // n_pixels
         self.y_pixels = self.canvas_height // self.pixel_size
         self.line_width = 15 // self.pixel_size
+        self.delete_width = 15 // self.pixel_size
+        self.grid_width = 15 // self.pixel_size
+        print("self.pixel_size: " + str(self.pixel_size))
+        print("self.canvas_width: " + str(self.canvas_width))
 
         self.root = root
         self.root.title("Convection-diffusion water flow simulation")
@@ -132,13 +136,13 @@ class GUI(tk.Frame):
 
         # Stone
         if val == -1:
-            r = self.w.create_rectangle(x, y, x2, y2, fill=self.stonecolor, outline=self.stonecolor)
+            r = self.w.create_rectangle(x, y, x2, y2, fill=self.stonecolor, outline= self.stonecolor)
             self.rectangles.append((r, x, y))
             self.board.set_value(x//self.pixel_size, y//self.pixel_size, val)
 
         # 100% water
         elif val == 1:
-            r = self.w.create_rectangle(x, y, x2, y2, fill=self.watercolor, outline=self.watercolor)
+            r = self.w.create_rectangle(x, y, x2, y2, fill=self.watercolor, outline= self.watercolor)
             self.rectangles.append((r, x, y))
             self.board.set_value(x//self.pixel_size, y//self.pixel_size, val)
 
@@ -324,9 +328,9 @@ class GUI(tk.Frame):
                 val = 0
             elif val > 100:
                 val = 100
-            self.draw_element(grid_x, grid_y, val/100)
+            self.widen_grid(grid_x, grid_y, val/100)
         else:
-            self.draw_element(grid_x, grid_y, self.mode)
+            self.widen_grid(grid_x, grid_y, self.mode)
 
     # This function is called from simulation; it is used to draw the entire representation of the board after 1 iteration
     def redraw_board(self, b):
@@ -368,8 +372,9 @@ class GUI(tk.Frame):
     def widen_line(self, line):
         candidates = []
         for p in line:
-            x_space = np.linspace(p[0]-(self.line_width//2)*self.pixel_size, p[0]+(self.line_width//2)*self.pixel_size, self.line_width)
-            y_space = np.linspace(p[1]-(self.line_width//2)*self.pixel_size, p[1]+(self.line_width//2)*self.pixel_size, self.line_width)
+            x_space = np.linspace(p[0]-(self.line_width//2)*self.pixel_size, p[0]+(self.line_width//2)*self.pixel_size, self.line_width+1)
+            y_space = np.linspace(p[1]-(self.line_width//2)*self.pixel_size, p[1]+(self.line_width//2)*self.pixel_size, self.line_width+1)
+            print("x_space, y_space: " + str(x_space) + ", " + str(y_space))
             for x in x_space:
                 for y in y_space:
                     if self.canvas_width-self.pixel_size >= x >= 0 and self.canvas_height-self.pixel_size >= y >= 0:
@@ -380,6 +385,15 @@ class GUI(tk.Frame):
             line.append(c)
         return line
 
+    def widen_grid(self, xcoord, ycoord, val):
+        x_space = np.linspace(xcoord-(self.grid_width//2)*self.pixel_size, xcoord+(self.grid_width//2)*self.pixel_size, self.grid_width + 1)
+        y_space = np.linspace(ycoord-(self.grid_width//2)*self.pixel_size, ycoord+(self.grid_width//2)*self.pixel_size, self.grid_width + 1)
+        for x in x_space:
+            for y in y_space:
+                print("drawing at x, y: " + str(x) + " " + str(y))
+                #print("drawing at x, y: " + str(int(x)) + " " + str(int(y)))
+                self.draw_element(x,y,val)
+    
     def get_line_pixels(self, x1, y1, x2, y2, x_step, y_step):
         pixels = []
         # Set coords to pixel center rather than top-left corner
@@ -402,7 +416,7 @@ class GUI(tk.Frame):
                 x1 += x_step
                 y1 += y_step
         return pixels
-
+    
     # Identify the step sizes for finding the pixels within a drawn line
     # Return the 1-step as first argument, the other as second
     def get_steps(self):
